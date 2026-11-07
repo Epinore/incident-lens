@@ -1,0 +1,130 @@
+{
+  "source": "sheet_export_2026-11-07.json",
+  "rows_in_sheet": 60,
+  "n": 59,
+  "n_question": 1,
+  "n_blank": 0,
+  "n_incidents": 53,
+  "agree": 31,
+  "agree_rate": 0.5254,
+  "ci95": [
+    0.397,
+    0.651
+  ],
+  "prediction_source": {
+    "held-out fold": 36,
+    "incident not in training": 23
+  },
+  "distribution": {
+    "Human performance": 27,
+    "Equipment failure": 11,
+    "Communication": 9,
+    "Management systems": 6,
+    "Work environment": 4,
+    "Supervision": 2
+  },
+  "per_class": {
+    "Human performance": {
+      "n": 27,
+      "agree": 11
+    },
+    "Equipment failure": {
+      "n": 11,
+      "agree": 10
+    },
+    "Management systems": {
+      "n": 6,
+      "agree": 3
+    },
+    "Supervision": {
+      "n": 2,
+      "agree": 0
+    },
+    "Communication": {
+      "n": 9,
+      "agree": 4
+    },
+    "Work environment": {
+      "n": 4,
+      "agree": 3
+    }
+  },
+  "confusion_rows_team_cols_model": {
+    "Human performance": {
+      "Human performance": 11,
+      "Equipment failure": 3,
+      "Management systems": 8,
+      "Supervision": 1,
+      "Communication": 1,
+      "Work environment": 3
+    },
+    "Equipment failure": {
+      "Human performance": 0,
+      "Equipment failure": 10,
+      "Management systems": 0,
+      "Supervision": 0,
+      "Communication": 0,
+      "Work environment": 1
+    },
+    "Management systems": {
+      "Human performance": 1,
+      "Equipment failure": 0,
+      "Management systems": 3,
+      "Supervision": 1,
+      "Communication": 0,
+      "Work environment": 1
+    },
+    "Supervision": {
+      "Human performance": 1,
+      "Equipment failure": 0,
+      "Management systems": 0,
+      "Supervision": 0,
+      "Communication": 1,
+      "Work environment": 0
+    },
+    "Communication": {
+      "Human performance": 0,
+      "Equipment failure": 2,
+      "Management systems": 3,
+      "Supervision": 0,
+      "Communication": 4,
+      "Work environment": 0
+    },
+    "Work environment": {
+      "Human performance": 1,
+      "Equipment failure": 0,
+      "Management systems": 0,
+      "Supervision": 0,
+      "Communication": 0,
+      "Work environment": 3
+    }
+  },
+  "team_vs_investigator": {
+    "n": 25,
+    "agree": 19
+  },
+  "text_length_mismatch_vs_sheet": [],
+  "notes_nonempty": 0,
+  "miss_examples": [
+    {
+      "ours": "Communication",
+      "model": "Management systems"
+    },
+    {
+      "ours": "Communication",
+      "model": "Management systems"
+    },
+    {
+      "ours": "Supervision",
+      "model": "Communication"
+    },
+    {
+      "ours": "Human performance",
+      "model": "Management systems"
+    },
+    {
+      "ours": "Human performance",
+      "model": "Work environment"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "n": 374,
+  "n_incidents": 159,
+  "labels": [
+    "Human performance",
+    "Work environment",
+    "Management systems",
+    "Communication",
+    "Equipment failure",
+    "Supervision"
+  ],
+  "support": {
+    "Human performance": 125,
+    "Work environment": 27,
+    "Management systems": 64,
+    "Communication": 26,
+    "Equipment failure": 104,
+    "Supervision": 28
+  },
+  "results": {
+    "Baseline: TF-IDF + LR (official)": {
+      "macro_f1": 0.34881250803450375,
+      "accuracy": 0.47058823529411764,
+      "ci": [
+        0.293390065707838,
+        0.40062191894857496
+      ],
+      "per_class": {
+        "Human performance": 0.53125,
+        "Work environment": 0.18181818181818182,
+        "Management systems": 0.417910447761194,
+        "Communication": 0.18181818181818182,
+        "Equipment failure": 0.6098654708520179,
+        "Supervision": 0.1702127659574468
+      }
+    },
+    "Embeddings + LR": {
+      "macro_f1": 0.4796487454292522,
+      "accuracy": 0.553475935828877,
+      "ci": [
+        0.4175604653270386,
+        0.5373248279407227
+      ],
+      "per_class": {
+        "Human performance": 0.5871559633027523,
+        "Work environment": 0.42857142857142855,
+        "Management systems": 0.4806201550387597,
+        "Communication": 0.39285714285714285,
+        "Equipment failure": 0.7239819004524887,
+        "Supervision": 0.2647058823529412
+      }
+    },
+    "Hybrid: TF-IDF + embeddings + LR": {
+      "macro_f1": 0.41774910023599326,
+      "accuracy": 0.553475935828877,
+      "ci": [
+        0.35983303412515444,
+        0.4679535721488196
+      ],
+      "per_class": {
+        "Human performance": 0.623574144486692,
+        "Work environment": 0.45454545454545453,
+        "Management systems": 0.42424242424242425,
+        "Communication": 0.19047619047619047,
+        "Equipment failure": 0.7136563876651982,
+        "Supervision": 0.1
+      }
+    },
+    "Majority class (always guess most common)": {
+      "macro_f1": 0.083500334001336,
+      "accuracy": 0.3342245989304813,
+      "ci": null,
+      "per_class": {}
+    }
+  },
+  "best": "Embeddings + LR",
+  "confusion": [
+    [
+      64,
+      5,
+      14,
+      8,
+      18,
+      16
+    ],
+    [
+      1,
+      12,
+      1,
+      0,
+      8,
+      5
+    ],
+    [
+      11,
+      1,
+      31,
+      4,
+      9,
+      8
+    ],
+    [
+      6,
+      0,
+      6,
+      11,
+      1,
+      2
+    ],
+    [
+      5,
+      10,
+      8,
+      1,
+      80,
+      0
+    ],
+    [
+      6,
+      1,
+      5,
+      6,
+      1,
+      9
+    ]
+  ]
+}
