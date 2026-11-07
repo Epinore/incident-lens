@@ -2,6 +2,8 @@
 
 **HAI Hackathon 2026 · Track 9 (Local Business & Industry) · Learn from offshore incident reports**
 
+**Try it live: https://incident-lens.streamlit.app**
+
 ![Incident Lens: 1,212 offshore incidents mapped by meaning](screenshots/6-hero.jpg)
 
 | A new report lands among past incidents | One click: a printable safety alert |

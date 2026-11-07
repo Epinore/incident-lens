@@ -212,7 +212,7 @@ async function icon(Comp, color) {
   s.addImage({ path: SHOT("1-similar-incidents.jpg"), x: 3.85, y: 3.55, w: 1.875, h: 1.4, sizing: { type: "cover", w: 1.875, h: 1.4 } });
   s.addImage({ path: SHOT("2-cause-and-why.jpg"), x: 5.825, y: 3.55, w: 1.875, h: 1.4, sizing: { type: "cover", w: 1.875, h: 1.4 } });
   s.addImage({ path: SHOT("5-safety-alert.png"), x: 7.85, y: 1.35, w: 1.65, h: 2.75 });
-  T(s, "Shown live. Screenshots are the backup.", { x: 7.85, y: 4.2, w: 1.65, h: 0.7, fontSize: 9.5, italic: true, color: DIM });
+  T(s, [{ text: "Try it live:", options: { breakLine: true } }, { text: "incident-lens.streamlit.app", options: { color: MINT, italic: false, bold: true, breakLine: true, hyperlink: { url: "https://incident-lens.streamlit.app" } } }, { text: "Screenshots are the backup." }], { x: 7.85, y: 4.2, w: 1.65, h: 0.7, fontSize: 9.5, italic: true, color: DIM });
   s.addNotes("Live demo. Galaxy: 1,212 incidents, 12 themes. Similar incidents: paste the crane sling report; it lands next to past crane incidents, with causes and fixes. Cause & why: highlighted words. Then one click: the printable safety alert. If the demo fails, use these screenshots.");
 
   // =====================================================================
@@ -318,12 +318,13 @@ async function icon(Comp, color) {
     s.addImage({ data: await icon(ready[i][0], MINT), x: 6.52, y: y + 0.05, w: 0.22, h: 0.22 });
     T(s, ready[i][1], { x: 6.9, y, w: 2.5, h: 0.32, fontSize: 11.5, color: SOFT, valign: "middle" });
   }
-  const REPO = "https://github.com/Epinore/incident-lens";
+  const REPO = "https://github.com/Epinore/incident-lens", APP = "https://incident-lens.streamlit.app";
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 6.5, y: 3.3, w: 1.36, h: 1.36, rectRadius: 0.08, fill: { color: WHITE }, line: { color: TEAL, width: 1 } });
-  s.addImage({ path: path.join(__dirname, "qr_repo.png"), x: 6.55, y: 3.35, w: 1.26, h: 1.26, hyperlink: { url: REPO } });
-  T(s, "Scan for the code and screenshots", { x: 8.0, y: 3.3, w: 1.4, h: 0.6, fontSize: 11, bold: true, color: WHITE });
+  s.addImage({ path: path.join(__dirname, "qr_app.png"), x: 6.55, y: 3.35, w: 1.26, h: 1.26, hyperlink: { url: APP } });
+  T(s, "Scan to try it live on your phone", { x: 8.0, y: 3.3, w: 1.4, h: 0.6, fontSize: 11, bold: true, color: WHITE });
   T(s, "Thank you!", { x: 8.0, y: 4.1, w: 1.45, h: 0.45, fontSize: 17, bold: true, color: TEAL, fontFace: "Arial", valign: "middle" });
-  T(s, "github.com/Epinore/incident-lens", { x: 6.5, y: 4.68, w: 2.9, h: 0.22, fontSize: 9.5, color: MINT, hyperlink: { url: REPO } });
+  T(s, "incident-lens.streamlit.app", { x: 6.5, y: 4.68, w: 1.6, h: 0.22, fontSize: 9.5, color: MINT, hyperlink: { url: APP } });
+  T(s, "Code: GitHub", { x: 8.1, y: 4.68, w: 1.3, h: 0.22, fontSize: 9.5, color: DIM, align: "right", hyperlink: { url: REPO } });
   s.addNotes("The real impact: before a job, a supervisor gets the lessons from every similar past incident in a minute and prints them for the crew. Investigators get look-alike cases and suggested causes. And because 891 reports never wrote down a usable fix, the tool shows where reporting itself can improve. It runs on one laptop, shows no names, and is open source, so a safety team could use it tomorrow. Thank you.");
 
   const out = path.join(ROOT, "slides", "Team 2 slides.pptx");
