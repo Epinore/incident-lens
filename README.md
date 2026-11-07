@@ -30,7 +30,7 @@ Helps offshore safety teams learn from ~1,200 real incident reports without read
 Scores measure agreement with the BSEE investigator's category, not the "true" cause. Hyper-parameters were set once, not tuned on test folds.
 
 ## Data
-[Houston-AI-Institute/psm-incident-ml](https://github.com/Houston-AI-Institute/psm-incident-ml): public US federal offshore incident reports (BSEE). We use only the `real_only/` tables (synthetic cells blanked). Data is **not** included in this repo; no names are shown in the app.
+[Houston-AI-Institute/psm-incident-ml](https://github.com/Houston-AI-Institute/psm-incident-ml): public US federal offshore incident reports (BSEE). We use only the `real_only/` tables (synthetic cells blanked). Data is **not** included in this repo; no names are shown in the app: `scrub_names.py` masks company, contractor, rig/vessel and person names in all displayed text (pattern- and list-based; `python scrub_names.py --audit` lists leftovers).
 
 ## Run
 ```bash

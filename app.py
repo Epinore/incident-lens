@@ -27,6 +27,7 @@ from galaxy_component import galaxy_html
 
 ART = Path(__file__).parent / "artifacts"
 HERE_LAB = Path(__file__).parent / "labeling"
+from scrub_names import scrub
 CODE2EL = {"HU": "3", "EQ": "15", "MS": "8", "SU": "17", "CO": "9", "WE": "6"}
 COLORS = {"Human performance": "#2DD4BF", "Equipment failure": "#38BDF8", "Management systems": "#A78BFA",
           "Supervision": "#F472B6", "Work environment": "#FBBF24", "Communication": "#FF7A45"}
@@ -669,7 +670,7 @@ with tab4:
                 dd = pd.read_csv(dis, encoding="utf-8-sig").head(4)
                 for _, r in dd.iterrows():
                     st.markdown(f"<div class='cause'><b>We said:</b> {esc(r.team)} · <b>Model:</b> {esc(r.model_pred)}<br>"
-                                f"<span class='muted'>{esc(str(r.text)[:200])}</span></div>", unsafe_allow_html=True)
+                                f"<span class='muted'>{esc(scrub(str(r.text))[:200])}</span></div>", unsafe_allow_html=True)
         else:
             st.info("Hand labels not imported yet (run gold_check.py).")
         st.markdown("#### Limits we know about")
