@@ -12,7 +12,7 @@ import streamlit.components.v1 as components
 from galaxy_component import galaxy_html
 
 ART = Path(__file__).parent / "artifacts"
-GOLD = Path(__file__).parent / "labeling" / "gold_to_label.csv"
+HERE_LAB = Path(__file__).parent / "labeling"
 CODE2EL = {"HU": "3", "EQ": "15", "MS": "8", "SU": "17", "CO": "9", "WE": "6"}
 COLORS = {"Human performance": "#2DD4BF", "Equipment failure": "#38BDF8", "Management systems": "#A78BFA",
           "Supervision": "#F472B6", "Work environment": "#FBBF24", "Communication": "#FF7A45"}
@@ -515,32 +515,24 @@ with tab4:
         st.plotly_chart(fig, use_container_width=True)
     with d:
         st.markdown("#### Check against our own hand labels")
-        if GOLD.exists():
-            gd = pd.read_csv(GOLD, encoding="utf-8-sig")
-            gd = gd[gd.my_label.astype(str).str.upper().str.strip().isin(CODE2EL)]
-            if len(gd):
-                gd["el"] = gd.my_label.str.upper().str.strip().map(CODE2EL)
-                OOF["rid"] = OOF["Incident Number"] + "-" + OOF["Cause number"].astype(str)
-                oofmap = dict(zip(OOF.rid, OOF[EV["best"]].astype(str)))
-                inv = {n: c for c, n in NAMES.items()}
-                mp = []
-                for _, r in gd.iterrows():
-                    if r.report_id in oofmap:   # seen in training -> use out-of-fold prediction
-                        mp.append(oofmap[r.report_id])
-                    else:
-                        pr = predict([str(r.text)])[0]
-                        mp.append(inv[max(pr, key=pr.get)])
-                gd["model"] = mp
-                agree = (gd.el == gd.model).mean()
-                st.markdown(f"<div class='kpi'><div class='big'>{(gd.el == gd.model).sum()} / {len(gd)}</div>"
-                            f"<div class='lbl'>rows where the model matches our team's label ({agree*100:.0f}%)</div></div>",
-                            unsafe_allow_html=True)
-                miss = gd[gd.el != gd.model].head(4)
-                for _, r in miss.iterrows():
-                    st.markdown(f"<div class='cause'><b>We said:</b> {NAMES[r.el]} · <b>Model:</b> {NAMES[r.model]}<br>"
+        GJ = ART / "gold.json"
+        gj = json.load(open(GJ)) if GJ.exists() else {"n": 0}
+        if gj.get("n"):
+            st.markdown(f"<div class='kpi'><div class='big'>{gj['agree']} / {gj['n']}</div>"
+                        f"<div class='lbl'>hand-labeled causes where the model matches our team ({gj['agree_rate']*100:.0f}%, "
+                        f"95% CI {gj['ci95'][0]*100:.0f}–{gj['ci95'][1]*100:.0f}%)</div></div>", unsafe_allow_html=True)
+            st.caption(f"{gj['n']} labeled rows from {gj['n_incidents']} incidents ({gj['n_question']} marked “?” excluded). "
+                       "Every prediction comes from a model that never saw that incident. These labels were not used to tune the model. "
+                       f"Our team matched the original investigators on {gj['team_vs_investigator']['agree']} of {gj['team_vs_investigator']['n']} rows, "
+                       "so the categories are ambiguous for people too.")
+            dis = HERE_LAB / "gold_disagreements.csv"
+            if dis.exists():
+                dd = pd.read_csv(dis, encoding="utf-8-sig").head(4)
+                for _, r in dd.iterrows():
+                    st.markdown(f"<div class='cause'><b>We said:</b> {esc(r.team)} · <b>Model:</b> {esc(r.model_pred)}<br>"
                                 f"<span class='muted'>{esc(str(r.text)[:200])}</span></div>", unsafe_allow_html=True)
-            else:
-                st.info("Hand labels not filled in yet (labeling/gold_to_label.csv).")
+        else:
+            st.info("Hand labels not imported yet (run gold_check.py).")
         st.markdown("#### Limits we know about")
         st.markdown("""
 - Scores measure agreement with the **investigator's** category, not the "true" cause.

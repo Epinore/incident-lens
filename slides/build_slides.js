@@ -139,7 +139,7 @@ async function icon(Comp, color) {
   s = pres.addSlide({ masterName: "Content", sectionTitle: "AI check" });
   title(s, "AI we used and how we checked it");
   const goldLine = gold.n > 0
-    ? `Our team hand-labeled ${gold.n} held-out rows. The model agreed on ${gold.agree} of ${gold.n} (${Math.round(100 * gold.agree / gold.n)}%).`
+    ? `Our hand labels: ${gold.n} causes, ${gold.n_incidents} incidents, scored only on unseen incidents: ${gold.agree} agree (${Math.round(100 * gold.agree_rate)}%, CI ${Math.round(100 * gold.ci95[0])}–${Math.round(100 * gold.ci95[1])}%). We matched investigators on ${gold.team_vs_investigator.agree} of ${gold.team_vs_investigator.n}.`
     : "Our team hand-labels a sample of the gold rows; the app compares them with the model.";
   const colL = [
     ["AI inside the product", true],
@@ -153,7 +153,7 @@ async function icon(Comp, color) {
     [`${ev.n} cause statements, 2019+ only, 5 folds grouped by incident so no incident is in both train and test`, false],
     [`Compared with the official baseline and an always-guess-most-common rule, with 95% bootstrap intervals`, false],
     [goldLine, false],
-    ["We read its mistakes: it most often calls Human performance causes Equipment failure (18) or Supervision (16)", false],
+    ["Most common mistake: Human performance read as Equipment failure (18) or Supervision (16)", false],
   ];
   const bl = (arr) => arr.map(([t, h], i) => ({ text: t, options: h ? { bold: true, fontSize: 17, color: INK, breakLine: true, paraSpaceAfter: 6 } : { bullet: true, fontSize: 14, color: "374151", breakLine: i < arr.length - 1, paraSpaceAfter: 6 } }));
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 1.2, w: 4.4, h: 3.85, fill: { color: LIGHT }, rectRadius: 0.12, line: { color: LIGHT } });
