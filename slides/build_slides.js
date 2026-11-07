@@ -79,14 +79,11 @@ async function icon(Comp, color) {
   T(s, [{ text: "By: ", options: { color: DIM } }, { text: "Ethan Leng and Oluchi Nnadi", options: { color: WHITE, bold: true } }],
     { x: 0.5, y: 2.6, w: 4.3, h: 0.35, fontSize: 15, valign: "middle" });
 
-  panel(s, 0.5, 3.35, 9, 1.75, EDGE, PANEL, 15);
-  s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 3.5, w: 0.06, h: 1.45, fill: { color: HOT }, line: { color: HOT } });
-  T(s, "PROBLEM STATEMENT", { x: 0.8, y: 3.5, w: 5.9, h: 0.25, fontSize: 10, bold: true, color: HOT, charSpacing: 3, fontFace: "Arial" });
-  T(s, "Offshore safety teams file hundreds of incident reports, but the lessons stay buried in free text. Before a risky job, nobody can read 1,212 reports, so the same incidents happen again.",
-    { x: 0.8, y: 3.8, w: 5.9, h: 1.1, fontSize: 14.5, color: WHITE });
-  s.addShape(pres.shapes.LINE, { x: 6.95, y: 3.6, w: 0, h: 1.25, line: { color: EDGE, width: 0.75 } });
-  T(s, "26%", { x: 7.15, y: 3.48, w: 2.2, h: 0.75, fontSize: 40, bold: true, color: HOT, fontFace: "Arial", valign: "middle" });
-  T(s, "of the reports record a fix anyone could act on", { x: 7.15, y: 4.25, w: 2.2, h: 0.65, fontSize: 12, color: SOFT });
+  panel(s, 0.5, 3.45, 9, 1.55, EDGE, PANEL, 15);
+  s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 3.6, w: 0.06, h: 1.25, fill: { color: HOT }, line: { color: HOT } });
+  T(s, "PROBLEM STATEMENT", { x: 0.8, y: 3.6, w: 8.4, h: 0.25, fontSize: 10, bold: true, color: HOT, charSpacing: 2, fontFace: "Arial" });
+  T(s, "Safety teams want to learn from past incidents, but finding relevant cases in hundreds of long reports takes time. Incident Lens helps them find similar incidents and see what investigators recommended.",
+    { x: 0.8, y: 3.92, w: 8.4, h: 0.95, fontSize: 15, color: WHITE });
   s.addNotes("Hi, we're Ethan and Oluchi, Team 2, Track 9. Offshore safety teams file hundreds of incident reports, but the lessons stay buried in free text. Only about a quarter of the reports even write down a fix someone could act on. Before a risky job nobody can read 1,212 reports, so the same incidents happen again. Incident Lens lets a safety team learn from all of them in a minute.");
 
   // =====================================================================
@@ -94,12 +91,12 @@ async function icon(Comp, color) {
   pres.addSection({ title: "Process" });
   s = pres.addSlide({ masterName: "Ocean", sectionTitle: "Process" });
   eyebrow(s, "HOW WE BUILT IT  ·  STEP 1 OF 3");
-  title(s, "We read the data before we built anything");
+  title(s, "How we prepared the data");
   const rules = [
-    [FaDatabase, "Real text only", "Every cell says if it is real or made up. Only real report text trains or scores the model."],
-    [FaHistory, "One time period", `Investigators named causes differently over the years, so the cause model uses 2019+ only: ${ev.n} cause statements, ${ev.n_incidents} incidents.`],
-    [FaLayerGroup, "Split by incident", "5 test folds grouped by incident, so no incident is ever in both training and testing."],
-    [FaUserShield, "No names", "Person, company and rig names are masked as [name], [company], [vessel]. The tool learns what happened, not who."],
+    [FaDatabase, "Real text only", "Used real report text, not generated data."],
+    [FaHistory, "One time period", "We used 2019+ data to keep the category definitions consistent."],
+    [FaLayerGroup, "Split by incident", "Kept each incident entirely in training or testing within each round."],
+    [FaUserShield, "No names", "Excluded name fields. Masked people, company and rig names in displayed text."],
   ];
   for (let i = 0; i < 4; i++) {
     const [I, h, d] = rules[i];
@@ -107,7 +104,7 @@ async function icon(Comp, color) {
     panel(s, x, 1.45, 2.1, 3.0);
     await badge(s, x + 0.2, 1.65, 0.62, I);
     T(s, h, { x: x + 0.2, y: 2.42, w: 1.75, h: 0.4, fontSize: 15, bold: true, color: WHITE, fontFace: "Arial", valign: "middle" });
-    T(s, d, { x: x + 0.2, y: 2.88, w: 1.75, h: 1.5, fontSize: 11.5, color: SOFT });
+    T(s, d, { x: x + 0.2, y: 2.88, w: 1.75, h: 1.5, fontSize: 12.5, color: SOFT });
   }
   T(s, "Data: public US federal offshore incident reports (BSEE), Energy Institute partner challenge dataset, real_only files.",
     { x: 0.5, y: 4.62, w: 9, h: 0.3, fontSize: 10.5, italic: true, color: DIM });
@@ -117,7 +114,7 @@ async function icon(Comp, color) {
   // 3. Process 2: one pipeline, three tools
   s = pres.addSlide({ masterName: "Ocean", sectionTitle: "Process" });
   eyebrow(s, "HOW WE BUILT IT  ·  STEP 2 OF 3");
-  title(s, "One local AI pipeline powers three tools");
+  title(s, "How Incident Lens works");
   // source
   panel(s, 0.5, 2.0, 1.55, 1.3);
   T(s, "1,212", { x: 0.5, y: 2.1, w: 1.55, h: 0.55, fontSize: 26, bold: true, color: WHITE, align: "center", fontFace: "Arial", valign: "middle" });
@@ -127,13 +124,13 @@ async function icon(Comp, color) {
   panel(s, 2.43, 1.85, 1.85, 1.6, TEAL);
   await badge(s, 3.08, 1.97, 0.55, FaBrain);
   T(s, "Meaning embeddings", { x: 2.45, y: 2.58, w: 1.81, h: 0.35, fontSize: 11.5, bold: true, color: WHITE, align: "center", fontFace: "Arial", valign: "middle" });
-  T(s, "bge-small, open source, runs on a laptop", { x: 2.55, y: 2.93, w: 1.61, h: 0.45, fontSize: 10, color: SOFT, align: "center" });
+  T(s, "open source, runs on a computer, bge-small", { x: 2.55, y: 2.93, w: 1.61, h: 0.45, fontSize: 10, color: SOFT, align: "center" });
   arrow(s, 4.3, 2.65, 0.2);
   vline(s, 4.5, 1.73, 1.84);
   const tools = [
-    [FaSearch, "Find similar incidents", "Closest past reports by meaning, with their causes and fixes"],
-    [FaBrain, "Spot cause patterns", "Cause category + the words behind it; 12 themes found automatically"],
-    [FaExclamationTriangle, "Flag missing details", "No fix, no cause, no outcome, no date, too short"],
+    [FaSearch, "Find similar incidents", "See past cases and recommended actions"],
+    [FaBrain, "Classify causes", "Suggest a category and highlight influential words"],
+    [FaExclamationTriangle, "Check missing details", "Flag missing causes, actions or dates"],
   ];
   for (let i = 0; i < 3; i++) {
     const [I, h, d] = tools[i];
@@ -150,13 +147,13 @@ async function icon(Comp, color) {
   panel(s, 8.03, 1.85, 1.47, 1.6, HOT, "3A2A2A", 30);
   await badge(s, 8.49, 1.97, 0.55, FaBell, HOT);
   T(s, "Safety alert", { x: 8.06, y: 2.58, w: 1.41, h: 0.35, fontSize: 12.5, bold: true, color: WHITE, align: "center", fontFace: "Arial", valign: "middle" });
-  T(s, "printable pre-job briefing", { x: 8.1, y: 2.93, w: 1.33, h: 0.45, fontSize: 10, color: SOFT, align: "center" });
+  T(s, "Print relevant cases and lessons for the team", { x: 8.1, y: 2.93, w: 1.33, h: 0.5, fontSize: 9.5, color: SOFT, align: "center" });
   // challenge fit
   panel(s, 0.5, 4.2, 9, 0.75, EDGE, NAVY, 30);
   T(s, [
     { text: "The challenge asked for one of these three. ", options: { color: SOFT } },
-    { text: "We built all three, ", options: { color: WHITE, bold: true } },
-    { text: "plus both stretch goals: we hand-labeled rows to check the model, and every answer shows why.", options: { color: SOFT } },
+    { text: "We built all three. ", options: { color: WHITE, bold: true } },
+    { text: "We checked the model against existing labels and our own hand-labeled examples.", options: { color: SOFT } },
   ], { x: 0.75, y: 4.25, w: 8.5, h: 0.65, fontSize: 12.5, valign: "middle" });
   s.addNotes("Step two: one pipeline. Every report becomes a meaning vector with a small open-source model that runs on a laptop. From that we built all three tools the challenge lists: similar-incident search, cause patterns, and flags for missing details. They all feed one output: a printable safety alert.");
 
@@ -166,17 +163,13 @@ async function icon(Comp, color) {
   eyebrow(s, "HOW WE BUILT IT  ·  STEP 3 OF 3");
   title(s, "We tested three models and kept the one that won");
   panel(s, 0.5, 1.35, 5.6, 3.6);
-  s.addChart(pres.charts.BAR, [{
-    name: "Macro-F1",
-    labels: ["Always guess the most common", "Official baseline: word counts", "Hybrid: words + meaning", "Incident Lens: meaning"],
-    values: [maj.macro_f1, base.macro_f1, hyb.macro_f1, best.macro_f1],
-  }], {
-    x: 0.65, y: 1.45, w: 5.3, h: 3.4, barDir: "bar", showValue: true, dataLabelFormatCode: "0.00", dataLabelPosition: "outEnd",
-    chartColors: ["3E5A6B", "5B7D8E", "38BDF8", TEAL], showLegend: false, valAxisHidden: true, valAxisMaxVal: 0.6, valAxisMinVal: 0,
-    valGridLine: { style: "none" }, catGridLine: { style: "none" }, catAxisLineShow: false, barGapWidthPct: 55,
-    catAxisLabelColor: SOFT, catAxisLabelFontSize: 11, dataLabelFontSize: 13, dataLabelColor: WHITE, dataLabelFontBold: true,
-    catAxisLabelFontFace: "+mn-lt", dataLabelFontFace: "+mn-lt",
-    showTitle: true, title: "Macro-F1 on cause category (higher is better)", titleFontSize: 11, titleColor: MUTED, titleFontFace: "+mn-lt",
+  T(s, "Macro-F1 on cause category (higher is better)", { x: 0.7, y: 1.47, w: 5.2, h: 0.3, fontSize: 11, color: MUTED, align: "center" });
+  const bars = [["Incident Lens: meaning", best.macro_f1, TEAL], ["Hybrid: words + meaning", hyb.macro_f1, SKY], ["Official baseline: word counts", base.macro_f1, "5B7D8E"], ["Always guess the most common", maj.macro_f1, "3E5A6B"]];
+  bars.forEach(([lab, v, c], i) => {
+    const y = 1.95 + i * 0.72, x0 = 2.75, wmax = 2.6;
+    T(s, lab, { x: 0.65, y, w: 2.0, h: 0.5, fontSize: 11, color: SOFT, align: "right", valign: "middle" });
+    s.addShape(pres.shapes.RECTANGLE, { x: x0, y: y + 0.05, w: Math.max(0.05, wmax * v / 0.5), h: 0.4, fill: { color: c }, line: { color: c } });
+    T(s, f2(v), { x: x0 + wmax * v / 0.5 + 0.08, y, w: 0.6, h: 0.5, fontSize: 13, bold: true, color: WHITE, fontFace: "Arial", valign: "middle" });
   });
   panel(s, 6.3, 1.35, 3.2, 3.6, TEAL);
   T(s, f2(best.macro_f1), { x: 6.5, y: 1.45, w: 2.8, h: 0.8, fontSize: 44, bold: true, color: TEAL, fontFace: "Arial", valign: "middle" });
@@ -195,10 +188,10 @@ async function icon(Comp, color) {
   pres.addSection({ title: "Demo" });
   s = pres.addSlide({ masterName: "Ocean", sectionTitle: "Demo" });
   eyebrow(s, "LIVE DEMO", HOT);
-  title(s, "A crane lift tomorrow: what should the crew know?");
+  title(s, "Find lessons from a past incident");
   const steps = [
-    ["Type the planned job", "Or paste a new report. It lands among 1,212 past incidents"],
-    ["See the closest past incidents", "Each with its match score, causes and fixes"],
+    ["Enter an incident", ""],
+    ["Review similar cases", "See recorded causes and recommendations."],
     ["Ask why", "Cause category plus the words that drove it"],
     ["Print the safety alert", "A one-page briefing for the pre-job meeting"],
   ];
@@ -211,8 +204,10 @@ async function icon(Comp, color) {
   s.addImage({ path: SHOT("1b-new-report-lands.jpg"), x: 3.85, y: 1.35, w: 3.85, h: 2.09 });
   s.addImage({ path: SHOT("1-similar-incidents.jpg"), x: 3.85, y: 3.55, w: 1.875, h: 1.4, sizing: { type: "cover", w: 1.875, h: 1.4 } });
   s.addImage({ path: SHOT("2-cause-and-why.jpg"), x: 5.825, y: 3.55, w: 1.875, h: 1.4, sizing: { type: "cover", w: 1.875, h: 1.4 } });
-  s.addImage({ path: SHOT("5-safety-alert.png"), x: 7.85, y: 1.35, w: 1.65, h: 2.75 });
-  T(s, [{ text: "Try it live:", options: { breakLine: true } }, { text: "incident-lens.streamlit.app", options: { color: MINT, italic: false, bold: true, breakLine: true, hyperlink: { url: "https://incident-lens.streamlit.app" } } }, { text: "Screenshots are the backup." }], { x: 7.85, y: 4.2, w: 1.65, h: 0.7, fontSize: 9.5, italic: true, color: DIM });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 7.95, y: 1.35, w: 1.5, h: 1.5, rectRadius: 0.08, fill: { color: WHITE }, line: { color: TEAL, width: 1 } });
+  s.addImage({ path: path.join(__dirname, "qr_app.png"), x: 8.01, y: 1.41, w: 1.38, h: 1.38, hyperlink: { url: "https://incident-lens.streamlit.app" } });
+  T(s, [{ text: "Try it live:", options: { breakLine: true } }, { text: "incident-lens.streamlit.app", options: { color: MINT, bold: true, breakLine: true, hyperlink: { url: "https://incident-lens.streamlit.app" } } }, { text: "Screenshots are the backup." }],
+    { x: 7.85, y: 3.0, w: 1.7, h: 0.9, fontSize: 9.5, italic: true, color: DIM });
   s.addNotes("Live demo. Galaxy: 1,212 incidents, 12 themes. Similar incidents: paste the crane sling report; it lands next to past crane incidents, with causes and fixes. Cause & why: highlighted words. Then one click: the printable safety alert. If the demo fails, use these screenshots.");
 
   // =====================================================================
@@ -240,7 +235,7 @@ async function icon(Comp, color) {
     "Logistic regression on embeddings: cause category (6 types)",
     "k-means on embeddings: 12 incident themes",
     "Leave-one-word-out: highlights why it chose a cause",
-    "Claude helped us write code; it is not in the product",
+    "Claude & Codex helped us write code; it is not in the product",
   ]), { x: 0.7, y: 2.72, w: 4.05, h: 2.2 });
   panel(s, 5.08, 2.6, 4.42, 2.38);
   T(s, bl("How we checked it", [
