@@ -4,3 +4,6 @@ artifacts/
 labeling/*.csv
 *.pyc
 .claude/
+slides/node_modules/
+slides/render/
+slides/package-lock.json

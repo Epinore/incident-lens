@@ -138,7 +138,7 @@ with tab1:
                 st.markdown(f"""<div class="card"><span class="sim">{r.sim*100:.0f}% match</span>
 <h4>{esc(r.type) or 'Incident'} · {esc(r.date[:4]) or 'undated'}</h4>
 <div class="muted">{esc(r.event) or ''} {('· area ' + esc(r.area)) if r.area else ''}</div>
-<p style="margin:8px 0">{esc(r.what[:420])}{'…' if len(r.what) > 420 else ''}</p>
+<p style="margin:8px 0">{esc(r.what.lstrip('-• ')[:420])}{'…' if len(r.what) > 420 else ''}</p>
 <div class="muted" style="margin-bottom:2px">Causes found by the investigator</div>{causes}</div>""", unsafe_allow_html=True)
         st.caption("Similarity = cosine similarity of meaning (bge-small embeddings), not keyword overlap. "
                    "Look-alikes are a starting point for an investigator, not a conclusion.")
@@ -257,9 +257,9 @@ with tab4:
         labs = EV["labels"]
         fig = go.Figure([go.Bar(name="Baseline", x=labs, y=[base["per_class"][l] for l in labs], marker_color="#64748B"),
                          go.Bar(name="Incident Lens", x=labs, y=[best["per_class"][l] for l in labs], marker_color="#F59E0B")])
-        fig.update_layout(title="F1 per category: biggest gains on the rare ones", barmode="group", height=300,
-                          margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                          font_color="#E5E7EB", legend=dict(orientation="h"))
+        fig.update_layout(title="F1 per category: biggest gains on the rare ones", barmode="group", height=330,
+                          margin=dict(l=0, r=0, t=70, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                          font_color="#E5E7EB", legend=dict(orientation="h", y=1.12, x=0), xaxis_tickangle=-25)
         st.plotly_chart(fig, use_container_width=True)
 
     c, d = st.columns(2)
