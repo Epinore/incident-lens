@@ -310,7 +310,7 @@ async function icon(Comp, color) {
   T(s, "Ready to use tomorrow", { x: 6.5, y: 1.5, w: 2.85, h: 0.4, fontSize: 15, bold: true, color: TEAL, fontFace: "Arial", valign: "middle" });
   const ready = [
     [FaLock, "Runs on one laptop, no API"],
-    [FaUserShield, "No names. Real data only."],
+    [FaUserShield, "No people or companies named"],
     [FaGithub, "Free and open source"],
   ];
   for (let i = 0; i < 3; i++) {

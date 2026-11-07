@@ -390,7 +390,7 @@ and turn it into a printable safety alert in one click.</p>
 </div>
 <div style="margin-top:18px;position:relative"><span class="chip">Track 9 · Local Business &amp; Industry</span>
 <span class="chip">Real report text only · synthetic cells excluded</span>
-<span class="chip">Runs fully local · no data leaves the laptop</span></div></div>""", unsafe_allow_html=True)
+<span class="chip">No external AI API · runs fully offline on a laptop</span></div></div>""", unsafe_allow_html=True)
 
 TAB_NAMES = [":material/bubble_chart: Incident galaxy", ":material/travel_explore: Similar incidents", ":material/psychology: Cause & why",
              ":material/fact_check: Report gaps & trends", ":material/insights: How well it works"]

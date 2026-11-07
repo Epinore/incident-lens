@@ -41,4 +41,4 @@ uv run python evaluate.py   # classifier comparison + models
 uv run streamlit run app.py
 ```
 
-Runs fully local: no API keys, no data leaves the machine. MIT license.
+Runs fully local: no API keys, no external AI service; run it on your own machine and no data leaves it. (The public demo is hosted on Streamlit Community Cloud, so text typed there goes to that server; don't paste confidential reports into it.) MIT license.
