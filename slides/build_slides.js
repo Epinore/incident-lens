@@ -99,7 +99,7 @@ async function icon(Comp, color) {
     [FaDatabase, "Real text only", "Every cell says if it is real or made up. Only real report text trains or scores the model."],
     [FaHistory, "One time period", `Investigators named causes differently over the years, so the cause model uses 2019+ only: ${ev.n} cause statements, ${ev.n_incidents} incidents.`],
     [FaLayerGroup, "Split by incident", "5 test folds grouped by incident, so no incident is ever in both training and testing."],
-    [FaUserShield, "No names", "Name fields are never shown or copied. The tool learns what happened, not who."],
+    [FaUserShield, "No names", "Person, company and rig names are masked as [name], [company], [vessel]. The tool learns what happened, not who."],
   ];
   for (let i = 0; i < 4; i++) {
     const [I, h, d] = rules[i];
