@@ -83,6 +83,41 @@ h1,h2,h3,h4 {letter-spacing:-.02em; color: var(--tx);}
 [data-baseweb="tab-highlight"], [data-baseweb="tab-border"], .stTabs [data-testid="stTabsHighlight"] {display:none !important;}
 .stButton button[kind="primary"] {background: linear-gradient(90deg,#FF7A45,#F97316); border:0; color:#fff; font-weight:700;}
 textarea {border-radius: 12px !important;}
+
+.hero:after {content:""; position:absolute; right:-60px; top:-30px; width:620px; height:400px; pointer-events:none;
+  background-size: cover; background-position:center; opacity:.55; mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent 100%); mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  animation: drift 60s ease-in-out infinite alternate;}
+@keyframes drift {from {transform: rotate(-4deg) scale(1);} to {transform: rotate(4deg) scale(1.08);}}
+.hero > * {position:relative; z-index:1;}
+@supports (animation-timeline: view()) {
+  .lesson, .cause, [data-testid="stPlotlyChart"], .bars, .statbig {
+    animation: enter linear both; animation-timeline: view(); animation-range: entry 0% entry 35%;}
+  @keyframes enter {from {opacity:0; transform: translateY(26px) scale(.98);} to {opacity:1; transform:none;}}
+}
+.ring {float:right; width:58px; height:58px; border-radius:50%; margin:-4px 0 6px 12px; display:grid; place-items:center;
+  background: conic-gradient(#2DD4BF calc(var(--p) * 1%), rgba(94,234,212,.10) 0); box-shadow: 0 0 18px rgba(45,212,191,.25);}
+.ring span {width:46px; height:46px; border-radius:50%; background:#0C2E44; display:grid; place-items:center;
+  font: 700 .82rem 'JetBrains Mono', monospace; color:#CCFBF1; line-height:1;}
+.ring span small {display:block; font: 500 .52rem Inter, sans-serif; color:#7FA7B5; letter-spacing:.08em;}
+.bars {padding: 14px 16px; border-radius:16px; background: linear-gradient(180deg, rgba(16,58,82,.6), rgba(10,40,62,.5)); border:1px solid rgba(94,234,212,.10);}
+.bar {display:grid; grid-template-columns: 148px 1fr 46px; gap:10px; align-items:center; margin:9px 0; font-size:.86rem; color:#BFE3DD;}
+.bar .tr {height:14px; border-radius:99px; background: rgba(94,234,212,.07); overflow:hidden;}
+.bar .fl {height:100%; border-radius:99px; width: var(--w); animation: grow 1.1s cubic-bezier(.2,.8,.2,1) both;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 55%, transparent), var(--c));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 60%, transparent), inset 0 1px 0 rgba(255,255,255,.35);}
+.bar b {font: 600 .82rem 'JetBrains Mono', monospace; color:#E6F4F1; text-align:right;}
+.bar.top {color:#fff; font-weight:600;}
+@keyframes grow {from {width:0;}}
+.w {transition: all .2s;}
+.mini {display:block; width:100%; height:64px; margin:8px 0 4px;}
+.statbig {display:grid; grid-template-columns: auto 1fr; gap: 28px; align-items:center; margin: 10px 0 22px; padding: 22px 28px;
+  border-radius: 22px; background: linear-gradient(120deg, rgba(255,122,69,.10), rgba(16,58,82,.55) 45%); border:1px solid rgba(255,122,69,.25);}
+.statbig .n {font-family:'Instrument Serif', Georgia, serif; font-size: 7.2rem; line-height:.9; color:#FF7A45;
+  text-shadow: 0 0 40px rgba(255,122,69,.35);}
+.statbig .t {font-family:'Instrument Serif', Georgia, serif; font-size: 2rem; line-height:1.15; color:#F0FDFA;}
+.statbig .t em {color:#5EEAD4;}
+.statbig .s {font-size:.92rem; color:#7FA7B5; margin-top:10px; font-family: Inter, sans-serif;}
 .lede {font-family:'Instrument Serif', Georgia, serif; font-size: 2.15rem; line-height:1.15; color:#F0FDFA;
   margin: 18px 0 14px; letter-spacing:-.01em; max-width: 980px;}
 .lede em {color:#5EEAD4; font-style: italic;}
@@ -296,6 +331,8 @@ def predict(texts):
 best = EV["results"][EV["best"]]
 base = EV["results"]["Baseline: TF-IDF + LR (official)"]
 n_fix = int((inc.recs.str.len() > 0).sum())
+HERO_BG = "data:image/jpeg;base64," + __import__("base64").b64encode(open(Path(__file__).parent / "assets_hero_galaxy.jpg", "rb").read()).decode()
+st.markdown(f"<style>.hero:after{{background-image:url({HERO_BG});}}</style>", unsafe_allow_html=True)
 st.markdown(f"""<div class="hero"><div class="eyebrow">INCIDENT LENS · OFFSHORE SAFETY INTELLIGENCE</div>
 <h1>Every offshore incident,<br><em>so the next one doesn't happen.</em></h1>
 <p>Search {len(inc):,} real BSEE incident reports by meaning, see what caused look-alikes and what investigators recommended,
@@ -326,9 +363,16 @@ with tab0:
                "Colors are 12 themes the model discovered on its own (k-means on the embeddings; we named them by their top words). Hover a dot to read it.")
     components.html(galaxy_html(inc, THEMES, TCOL, height=640, title_note=f"{len(inc):,} real reports · 12 themes found by the model · hover any star"), height=650)
     cols = st.columns(4)
-    for i, t in enumerate(THEMES[:8]):
+    gx0, gx1, gy0, gy1 = inc.x.min(), inc.x.max(), inc.y.min(), inc.y.max()
+    for i, t in enumerate(THEMES):
         d = inc[inc.theme == t]
-        cols[i % 4].markdown(f"<div class='card' style='padding:12px 14px'><span style='color:{TCOL[t]};font-weight:700'>● {t}</span>"
+        bgdots = "".join(f"<circle cx='{(x_-gx0)/(gx1-gx0)*200:.1f}' cy='{(y_-gy0)/(gy1-gy0)*64:.1f}' r='0.9' fill='#3E6A7A'/>"
+                         for x_, y_ in zip(inc.x.values[::4], inc.y.values[::4]))
+        dots = "".join(f"<circle cx='{(x_-gx0)/(gx1-gx0)*200:.1f}' cy='{(y_-gy0)/(gy1-gy0)*64:.1f}' r='1.8' fill='{TCOL[t]}'/>"
+                       for x_, y_ in zip(d.x.values[:90], d.y.values[:90]))
+        mini = (f"<svg class='mini' viewBox='-4 -4 208 72' preserveAspectRatio='none'><defs><filter id='gl{i}'><feGaussianBlur stdDeviation='1.6'/></filter></defs>"
+                f"{bgdots}<g filter='url(#gl{i})'>{dots}</g>{dots}</svg>")
+        cols[i % 4].markdown(f"<div class='card' style='padding:12px 14px'><span style='color:{TCOL[t]};font-weight:700'>● {t}</span>{mini}"
                              f"<div class='big' style='font-size:1.6rem;margin-top:4px'>{len(d)}</div>"
                              f"<div class='muted'>{esc(d.keywords.iloc[0])}</div></div>", unsafe_allow_html=True)
 
@@ -398,7 +442,7 @@ with tab1:
             st.markdown("#### Most similar past incidents")
             for _, r in res.iterrows():
                 causes = "".join(f"<div class='cause'>{esc(c[:240])}</div>" for c in r.causes[:3]) or "<span class='muted'>No cause recorded</span>"
-                st.markdown(f"""<div class="card"><span class="sim">{r.sim*100:.0f}% match</span>
+                st.markdown(f"""<div class="card"><div class="ring" style="--p:{r.sim*100:.0f}"><span>{r.sim*100:.0f}%<small>MATCH</small></span></div>
 <h4>{esc(r.type) or 'Incident'} · {esc(r.date[:4]) or 'undated'}</h4>
 <div class="muted">{esc(r.event) or ''} {('· area ' + esc(r.area)) if r.area else ''}</div>
 <p style="margin:8px 0">{esc(r.what.lstrip('-• ')[:420])}{'…' if len(r.what) > 420 else ''}</p>
@@ -437,11 +481,9 @@ with tab2:
                         unsafe_allow_html=True)
             if top_p < 0.45:
                 st.warning("Low confidence: two or more categories are close. An investigator should decide.")
-            fig = go.Figure(go.Bar(x=[p[o] for o in order][::-1], y=order[::-1], orientation="h",
-                                   marker_color=[COLORS[o] for o in order][::-1]))
-            fig.update_layout(height=250, margin=dict(l=10, r=10, t=10, b=50), xaxis_tickformat=".0%",
-                              paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA")
-            st.plotly_chart(fig, use_container_width=True, config=PCFG)
+            rows_ = "".join(f"<div class='bar{' top' if j == 0 else ''}'><span>{o}</span><div class='tr'><div class='fl' style='--w:{p[o]*100:.1f}%;--c:{COLORS[o]};animation-delay:{j*90}ms'></div></div><b>{p[o]*100:.0f}%</b></div>"
+                            for j, o in enumerate(order))
+            st.markdown(f"<div class='bars'>{rows_}</div>", unsafe_allow_html=True)
         with b:
             st.markdown("#### Why: which words pushed the answer")
             words = re.findall(r"\S+", txt)[:60]
@@ -452,7 +494,9 @@ with tab2:
             imp = imp / imp.max() if imp.max() > 0 else imp
             col = COLORS[top_c].lstrip("#")
             rgb = tuple(int(col[i:i + 2], 16) for i in (0, 2, 4))
-            spans = " ".join(f"<span class='w' style='background:rgba({rgb[0]},{rgb[1]},{rgb[2]},{0.08 + 0.75 * v:.2f})'>{esc(w)}</span>"
+            spans = " ".join(f"<span class='w' style='background:rgba({rgb[0]},{rgb[1]},{rgb[2]},{0.06 + 0.7 * v:.2f});"
+                             f"box-shadow:0 0 {v*22:.0f}px rgba({rgb[0]},{rgb[1]},{rgb[2]},{0.65 * v:.2f});"
+                             f"color:{'#04202A' if v > 0.6 else '#E6F4F1'};font-weight:{700 if v > 0.45 else 400}'>{esc(w)}</span>"
                              for w, v in zip(words, imp))
             st.markdown(f"<div class='card' style='font-size:1.08rem; line-height:2'>{spans}</div>", unsafe_allow_html=True)
             st.caption("Each word is removed in turn; the brighter the highlight, the more the confidence in "
@@ -468,7 +512,10 @@ with tab2:
 # ---------- TAB 3: gaps ----------
 n_nofix_total = int((inc.recs.str.len() == 0).sum())
 with tab3:
-    st.markdown(f"<div class='lede'>{n_nofix_total:,} of {len(inc):,} reports <em>never wrote down a fix anyone could act on.</em></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='statbig'><div class='n'>{n_nofix_total}</div><div><div class='t'>of {len(inc):,} offshore incident reports "
+                f"<em>never wrote down a fix anyone could act on.</em></div><div class='s'>Investigators found causes in almost every report, "
+                f"but the recommendation field is mostly boilerplate such as \u201cno recommendations\u201d. The lessons exist; they are not written down.</div></div></div>",
+                unsafe_allow_html=True)
     g = inc.copy()
     g["No cause recorded"] = g.causes.str.len() == 0
     g["No actionable fix"] = g.recs.str.len() == 0
