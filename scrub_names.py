@@ -51,6 +51,18 @@ FIRST_RX = re.compile(r"(?<![\w\[])(?:%s)\s+([A-Z][a-zA-Z'\-]+)" % "|".join(FIRS
 ALIAS_RX = re.compile(r"\[company\](?:\s*[–\-,]\s*USA)?\s*\((?:“|\")?([A-Z][A-Za-z&\-]{1,15})(?:”|\")?\)")
 
 
+# Found by the --audit pass (capitalised word pairs that never appear in lower case): people, rigs, vessels, companies.
+EXTRA_NAMES = ["Therald Martin", "Jarrid Armentor", "Cecil Provine", "Adrian Gatain", "Serrano Robicon", "Nick Skanki", "Warren Thomas", "Diana Hoover",
+               "Landon James", "Bernie Fink", "Erin Moore", "Lars Herbst", "Fred Hefren"]
+EXTRA_VESSELS = [r"Discoverer\s+[A-Z]\w+", "Stanley Lafosse", r"Sevan\s+[A-Z]\w+", "Superior Champion", r"Global\s+Santa\s+\w+", "International Searcher",
+                 r"Pacific\s+[A-Z]\w+", r"Kika\s+[A-Z]\w+", "Super Sundowner", "Caramel Keg", "Tiger Shark", r"Rowans?\s+[A-Z]\w+", "Lezza Renee", "Macy Lyn",
+                 "Oceanics Condor", r"Hoover\s+S(?:par|PAR)", "Trident Crusader", "Canyon Runner", "Irene Copter", "Cape Hope", "Marco Polo", "Fantasy Island"]
+EXTRA_COMPANIES = ["Chet Morrison", "Maritech Resource", "Maritech", "Shaw Global", "National Oilwell", "Broussard Brothers", "Premier Catering", "Medco Energi",
+                   "Tiger Rentals", "Quik Pac", "American Aero", "Hall Houston", "Nexen", "Mariners", "Dril Quip", "Tetra Hedron", "Bois D'Arc", "Empire", "Murphyhs", "ChevronTexaco"]
+EXTRA_RX = [(re.compile(r"(?<![\w\[])(?:%s)(?![\w])" % "|".join(EXTRA_NAMES)), "[name]"),
+            (re.compile(r"(?<![\w\[])(?:%s)(?![\w])" % "|".join(EXTRA_VESSELS)), "[vessel]"),
+            (re.compile(r"(?<![\w\[])(?:%s)(?![\w])" % "|".join(EXTRA_COMPANIES)), "[company]")]
+
 def _vessel(m):
     words = m.group(2).split()
     if words[0].rstrip(".,") in STOP or (len(words) == 1 and len(words[0]) <= 2):
@@ -61,6 +73,8 @@ def _vessel(m):
 def scrub(t, aliases=()):
     if not isinstance(t, str) or not t:
         return t
+    for rx, tag in EXTRA_RX:
+        t = rx.sub(tag, t)
     t = PERSON_RX.sub("[name]", t)
     t = FIRST_RX.sub(lambda m: m.group(0) if m.group(1) in NOT_PERSON else "[name]", t)
     t = NAMES_RX.sub("[company]", t)
