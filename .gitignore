@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+artifacts/
+labeling/*.csv
+*.pyc
+.claude/

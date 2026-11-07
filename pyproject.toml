@@ -1,0 +1,23 @@
+[project]
+name = "incident-lens"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Epinore", email = "2573046878@qq.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastembed>=0.9.1",
+    "numpy>=2.5.4",
+    "pandas>=3.1.1",
+    "plotly>=7.1.0",
+    "scikit-learn>=1.9.1",
+    "streamlit>=1.67.0",
+]
+
+[project.scripts]
+incident-lens = "incident_lens:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"
