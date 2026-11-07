@@ -8,6 +8,20 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+import plotly.io as pio
+
+_ax = dict(gridcolor="rgba(94,234,212,.08)", zeroline=False, linecolor="rgba(94,234,212,.18)", showline=False,
+           tickfont=dict(color="#8FB3BF", size=11), title_font=dict(color="#8FB3BF", size=12))
+pio.templates["ocean"] = go.layout.Template(layout=dict(
+    font=dict(family="Inter, system-ui, sans-serif", color="#D5EEEA", size=12),
+    title=dict(font=dict(family="Inter, system-ui, sans-serif", size=15, color="#E6F4F1"), x=0, xanchor="left"),
+    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=_ax, yaxis=_ax,
+    legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color="#BFE3DD", size=11)),
+    hoverlabel=dict(bgcolor="#0B2233", bordercolor="#2DD4BF", font=dict(family="Inter", color="#E6F4F1")),
+    barcornerradius=5, bargap=0.28,
+    colorway=["#2DD4BF", "#38BDF8", "#A78BFA", "#FBBF24", "#FF7A45", "#F472B6"]))
+pio.templates.default = "ocean"
+PCFG = {"displayModeBar": False}
 import streamlit.components.v1 as components
 from galaxy_component import galaxy_html
 
@@ -22,7 +36,7 @@ st.set_page_config(page_title="Incident Lens", page_icon="🔎", layout="wide")
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap');
 :root{--bg:#061826;--sf:#0B2233;--sf2:#0E2A3F;--ln:rgba(94,234,212,.12);--tx:#E6F4F1;--mu:#7FA7B5;--ac:#2DD4BF;--ac2:#5EEAD4;--hot:#FF7A45;}
 html, body, [class*="css"], .stMarkdown, .stTextArea textarea, button {font-family: Inter, ui-sans-serif, system-ui, sans-serif !important;}
 #MainMenu, footer, [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {display:none !important;}
@@ -69,6 +83,21 @@ h1,h2,h3,h4 {letter-spacing:-.02em; color: var(--tx);}
 [data-baseweb="tab-highlight"], [data-baseweb="tab-border"], .stTabs [data-testid="stTabsHighlight"] {display:none !important;}
 .stButton button[kind="primary"] {background: linear-gradient(90deg,#FF7A45,#F97316); border:0; color:#fff; font-weight:700;}
 textarea {border-radius: 12px !important;}
+.lede {font-family:'Instrument Serif', Georgia, serif; font-size: 2.15rem; line-height:1.15; color:#F0FDFA;
+  margin: 18px 0 14px; letter-spacing:-.01em; max-width: 980px;}
+.lede em {color:#5EEAD4; font-style: italic;}
+.kpi {position:relative; overflow:hidden; transition: transform .2s, box-shadow .2s, border-color .2s;}
+.kpi:before {content:""; position:absolute; left:18%; right:18%; top:0; height:2px;
+  background: linear-gradient(90deg, transparent, #5EEAD4, transparent); box-shadow: 0 0 14px #2DD4BF;}
+.kpi:hover {transform: translateY(-3px); border-color: rgba(94,234,212,.45); box-shadow: 0 12px 36px rgba(45,212,191,.18);}
+.kpi .big {background: linear-gradient(180deg, #FFFFFF 10%, #9DEFE3 100%); -webkit-background-clip:text; color:transparent;}
+::selection {background: rgba(45,212,191,.35); color:#fff;}
+::-webkit-scrollbar {width:10px; height:10px;} ::-webkit-scrollbar-track {background: #061826;}
+::-webkit-scrollbar-thumb {background: linear-gradient(#14776E, #0E4F5C); border-radius: 10px; border: 2px solid #061826;}
+textarea:focus, [data-baseweb="select"]:focus-within, [data-baseweb="input"]:focus-within {box-shadow: 0 0 0 1px #2DD4BF, 0 0 18px rgba(45,212,191,.35) !important;}
+[role="tab"] [data-testid="stIconMaterial"] {color: #5EEAD4;}
+[data-testid="stPlotlyChart"] {background: linear-gradient(180deg, rgba(14,58,85,.35), rgba(8,40,62,.2)); border:1px solid rgba(94,234,212,.10);
+  border-radius: 16px; padding: 10px 12px 4px;}
 </style>""", unsafe_allow_html=True)
 
 st.markdown("""<style>
@@ -187,7 +216,7 @@ def galaxy_fig(highlight=None, star=None, height=560, legend=True):
         fig.add_trace(go.Scatter(x=[star[0]], y=[star[1]], mode="markers+text", name="New report", text=["  NEW REPORT"],
                                  textposition="middle right", textfont=dict(color="#FFFFFF", size=13),
                                  marker=dict(size=24, symbol="star", color="#FFFFFF", line=dict(width=2, color="#F59E0B"))))
-    fig.update_layout(height=height, margin=dict(l=0, r=0, t=10, b=0), showlegend=legend,
+    fig.update_layout(height=height, margin=dict(l=10, r=10, t=10, b=50), showlegend=legend,
                       legend=dict(font=dict(size=11), itemsizing="constant", bgcolor="rgba(0,0,0,0)"),
                       xaxis=dict(visible=False), yaxis=dict(visible=False), hoverlabel=dict(bgcolor="#0B2233"), **DARK)
     return fig
@@ -281,7 +310,8 @@ and turn it into a printable safety alert in one click.</p>
 <span class="chip">Real report text only · synthetic cells excluded</span>
 <span class="chip">Runs fully local · no data leaves the laptop</span></div></div>""", unsafe_allow_html=True)
 
-TAB_NAMES = ["🌌  Incident galaxy", "🔍  Similar incidents", "🧠  Cause & why", "⚠️  Report gaps & trends", "📊  How well it works"]
+TAB_NAMES = [":material/bubble_chart: Incident galaxy", ":material/travel_explore: Similar incidents", ":material/psychology: Cause & why",
+             ":material/fact_check: Report gaps & trends", ":material/insights: How well it works"]
 _sel = st.query_params.get("tab", "0")
 _order = [int(_sel)] + [i for i in range(5) if i != int(_sel)] if _sel in "01234" and len(_sel) == 1 else list(range(5))
 _ts = st.tabs([TAB_NAMES[i] for i in _order])
@@ -289,6 +319,7 @@ tab0, tab1, tab2, tab3, tab4 = (_ts[_order.index(i)] for i in range(5))
 
 # ---------- TAB 0: galaxy ----------
 with tab0:
+    st.markdown(f"<div class='lede'>1,212 incidents. <em>12 patterns that keep coming back.</em></div>", unsafe_allow_html=True)
     st.markdown("<div class='sec'>01 · THE MAP</div>", unsafe_allow_html=True)
     st.markdown("#### Every incident, placed by meaning")
     st.caption(f"Each dot is one of {len(inc):,} real reports. Reports that describe similar events sit close together. "
@@ -309,6 +340,7 @@ EXAMPLES = {
     "Slip on wet stairs": "A worker slipped while descending wet stairs between decks during heavy rain and injured his back.",
 }
 with tab1:
+    st.markdown(f"<div class='lede'>A new report comes in. <em>What happened before, and what fixed it?</em></div>", unsafe_allow_html=True)
     c1, c2 = st.columns([3, 2])
     with c2:
         st.markdown("**Try an example**")
@@ -335,9 +367,9 @@ with tab1:
                 tally = pd.Series([max(p, key=p.get) for p in preds]).value_counts()
                 fig = go.Figure(go.Bar(x=tally.values, y=tally.index, orientation="h",
                                        marker_color=[COLORS.get(i, "#888") for i in tally.index]))
-                fig.update_layout(height=230, margin=dict(l=0, r=10, t=10, b=0), paper_bgcolor="rgba(0,0,0,0)",
+                fig.update_layout(height=230, margin=dict(l=10, r=10, t=10, b=50), paper_bgcolor="rgba(0,0,0,0)",
                                   plot_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA", xaxis_title="cause statements in look-alikes")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, config=PCFG)
                 st.caption("Cause categories predicted by our model for the causes of these look-alike incidents.")
             st.markdown("**Fixes that were recommended before**")
             wide = inc.iloc[np.argsort(-sims)[:40]]
@@ -387,6 +419,7 @@ CAUSE_EX = [
     "Heavy seas and high winds caused the personnel basket to swing into the handrail.",
 ]
 with tab2:
+    st.markdown(f"<div class='lede'>Which cause category would an investigator pick, <em>and which words gave it away?</em></div>", unsafe_allow_html=True)
     c1, c2 = st.columns([3, 2])
     with c2:
         st.markdown("**Try a cause statement**")
@@ -406,9 +439,9 @@ with tab2:
                 st.warning("Low confidence: two or more categories are close. An investigator should decide.")
             fig = go.Figure(go.Bar(x=[p[o] for o in order][::-1], y=order[::-1], orientation="h",
                                    marker_color=[COLORS[o] for o in order][::-1]))
-            fig.update_layout(height=250, margin=dict(l=0, r=10, t=10, b=0), xaxis_tickformat=".0%",
+            fig.update_layout(height=250, margin=dict(l=10, r=10, t=10, b=50), xaxis_tickformat=".0%",
                               paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config=PCFG)
         with b:
             st.markdown("#### Why: which words pushed the answer")
             words = re.findall(r"\S+", txt)[:60]
@@ -433,7 +466,9 @@ with tab2:
                             f"{esc(M['train_text'][i][:220])}</div>", unsafe_allow_html=True)
 
 # ---------- TAB 3: gaps ----------
+n_nofix_total = int((inc.recs.str.len() == 0).sum())
 with tab3:
+    st.markdown(f"<div class='lede'>{n_nofix_total:,} of {len(inc):,} reports <em>never wrote down a fix anyone could act on.</em></div>", unsafe_allow_html=True)
     g = inc.copy()
     g["No cause recorded"] = g.causes.str.len() == 0
     g["No actionable fix"] = g.recs.str.len() == 0
@@ -447,22 +482,23 @@ with tab3:
         c.markdown(f"<div class='kpi'><div class='big'>{int(g[name].sum())}</div><div class='lbl'>{name}</div></div>",
                    unsafe_allow_html=True)
     st.write("")
-    yr = g.dropna(subset=["year"]).groupby("year")[["No cause recorded", "No actionable fix"]].mean() * 100
+    yr = g.dropna(subset=["year"]).groupby("year")[["No actionable fix"]].mean() * 100
     fig = go.Figure()
-    for cname, colr in [("No cause recorded", HOT), ("No actionable fix", AC)]:
-        fig.add_trace(go.Scatter(x=yr.index, y=yr[cname], name=cname, mode="lines+markers", line_color=colr))
-    fig.update_layout(height=280, title="Share of reports missing key details, by year (%)",
-                      margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+    fig.add_trace(go.Scatter(x=yr.index, y=yr["No actionable fix"], name="No actionable fix", mode="lines+markers",
+                             line=dict(color=AC, width=3, shape="spline"), marker=dict(size=7, color="#5EEAD4"),
+                             fill="tozeroy", fillcolor="rgba(45,212,191,.12)", hovertemplate="%{x}: %{y:.0f}%<extra></extra>"))
+    fig.update_layout(height=280, title="Share of reports with no actionable fix, by year (%)", showlegend=False,
+                      margin=dict(l=10, r=10, t=40, b=50), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       font_color="#D5EEEA", legend=dict(orientation="h"))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=PCFG)
     tr = inc.dropna(subset=["year"]).query("year >= 2000").groupby(["year", "theme"]).size().unstack(fill_value=0)
     fig = go.Figure()
     for t in THEMES:
         if t in tr:
             fig.add_trace(go.Bar(x=tr.index, y=tr[t], name=t, marker_color=TCOL[t]))
     fig.update_layout(barmode="stack", height=340, title="Incidents per year by theme (in this dataset)",
-                      margin=dict(l=0, r=0, t=40, b=0), legend=dict(font=dict(size=10)), **DARK)
-    st.plotly_chart(fig, use_container_width=True)
+                      margin=dict(l=10, r=10, t=40, b=50), legend=dict(font=dict(size=10)), **DARK)
+    st.plotly_chart(fig, use_container_width=True, config=PCFG)
     st.caption("Counts reflect which reports BSEE published and this dataset includes, not the full offshore incident rate.")
     sel = st.multiselect("Show reports missing…", checks, default=["No cause recorded"])
     view = g[g[sel].any(axis=1)] if sel else g[g.gaps > 0]
@@ -472,6 +508,7 @@ with tab3:
 
 # ---------- TAB 4: honesty ----------
 with tab4:
+    st.markdown(f"<div class='lede'>0.48 vs 0.35, <em>measured exactly the way the official baseline was.</em></div>", unsafe_allow_html=True)
     st.markdown("#### Task: recover the investigator's cause category from the cause text")
     st.markdown(f"<span class='chip'>n = {EV['n']} cause statements</span><span class='chip'>{EV['n_incidents']} incidents</span>"
                 "<span class='chip'>2019+ era only (one consistent label set)</span>"
@@ -493,26 +530,37 @@ with tab4:
                                      error_x=dict(type="data", symmetric=False, array=[r["ci"][1] - r["macro_f1"]], arrayminus=[r["macro_f1"] - r["ci"][0]]),
                                      showlegend=False))
         fig.update_layout(title="Macro-F1 with 95% interval (no overlap = real difference)", height=300,
-                          margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                          margin=dict(l=10, r=10, t=40, b=50), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                           font_color="#D5EEEA", xaxis_range=[0.2, 0.6])
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config=PCFG)
     with b:
         labs = EV["labels"]
         fig = go.Figure([go.Bar(name="Baseline", x=labs, y=[base["per_class"][l] for l in labs], marker_color=GREY),
                          go.Bar(name="Incident Lens", x=labs, y=[best["per_class"][l] for l in labs], marker_color=AC)])
         fig.update_layout(title="F1 per category: biggest gains on the rare ones", barmode="group", height=330,
-                          margin=dict(l=0, r=0, t=70, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                          margin=dict(l=10, r=10, t=70, b=50), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                           font_color="#D5EEEA", legend=dict(orientation="h", y=1.12, x=0), xaxis_tickangle=-25)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config=PCFG)
 
     c, d = st.columns(2)
     with c:
         cm = np.array(EV["confusion"])
-        fig = go.Figure(go.Heatmap(z=cm, x=labs, y=labs, colorscale=[[0, "#0B2233"], [0.5, "#14776E"], [1, "#5EEAD4"]], text=cm, texttemplate="%{text}"))
-        fig.update_layout(title="Where it gets confused (rows = investigator, cols = model)", height=380,
-                          margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA",
+        n_ = len(labs); diag = np.eye(n_, dtype=bool)
+        zc = np.where(diag, 0.56 + 0.44 * cm / cm.max(), np.where(cm >= 10, 0.32 + 0.12 * np.minimum((cm - 10) / 8, 1), 0.05 + 0.1 * cm / 10))
+        fig = go.Figure(go.Heatmap(z=zc, x=labs, y=labs, zmin=0, zmax=1, showscale=False, xgap=3, ygap=3,
+                                   colorscale=[[0, "#0B2B40"], [0.15, "#13384F"], [0.3, "#B4532A"], [0.44, "#FF7A45"], [0.5, "#0B2B40"],
+                                               [0.56, "#0F4C5C"], [1, "#5EEAD4"]],
+                                   customdata=cm, hovertemplate="Investigator: %{y}<br>Model: %{x}<br>%{customdata} statements<extra></extra>"))
+        for i_ in range(n_):
+            for j_ in range(n_):
+                v_ = int(cm[i_, j_])
+                fig.add_annotation(x=labs[j_], y=labs[i_], text=f"<b>{v_}</b>" if (i_ == j_ or v_ >= 10) else str(v_), showarrow=False,
+                                   font=dict(size=13, color="#04202A" if zc[i_, j_] > 0.8 else ("#FFFFFF" if v_ >= 10 or i_ == j_ else "#6E8F9C")))
+        fig.update_layout(title="Where it gets confused (rows = investigator, cols = model)", height=430,
+                          margin=dict(l=10, r=10, t=40, b=50), paper_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA",
                           yaxis_autorange="reversed")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config=PCFG)
+        st.markdown("<span class='muted'>Teal diagonal = correct. <b style='color:#FF7A45'>Orange</b> = a mistake made 10+ times.</span>", unsafe_allow_html=True)
     with d:
         st.markdown("#### Check against our own hand labels")
         GJ = ART / "gold.json"
