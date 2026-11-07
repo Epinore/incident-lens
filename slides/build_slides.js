@@ -15,7 +15,7 @@ const R = ev.results;
 const base = R["Baseline: TF-IDF + LR (official)"], best = R[ev.best], maj = R["Majority class (always guess most common)"];
 const f2 = (x) => x.toFixed(2);
 
-const NAVY = "0B1220", PANEL = "131C2E", AMBER = "F59E0B", SLATE = "64748B", WHITE = "FFFFFF", INK = "1F2937", MUTED = "9CA3AF", LIGHT = "F3F4F6", SKY = "38BDF8";
+const NAVY = "082C44", PANEL = "0E3A55", AMBER = "2DD4BF", HOT = "FF7A45", TEAL_D = "0D9488", SLATE = "64748B", WHITE = "FFFFFF", INK = "1F2937", MUTED = "9CA3AF", LIGHT = "F3F4F6", SKY = "38BDF8";
 const THEME = {
   name: "Incident Lens", headFontFace: "Arial", bodyFontFace: "Calibri",
   colors: { dk1: "111827", lt1: "FFFFFF", dk2: NAVY, lt2: LIGHT, accent1: AMBER, accent2: SKY, accent3: "A78BFA", accent4: "34D399", accent5: "FB7185", accent6: SLATE, hlink: "2563EB", folHlink: "7C3AED" },
@@ -48,9 +48,10 @@ async function icon(Comp, color) {
   // 1. Title
   pres.addSection({ title: "Intro" });
   let s = pres.addSlide({ masterName: "Dark", sectionTitle: "Intro" });
+  s.addImage({ path: path.join(ROOT, "screenshots", "title-galaxy.jpg"), x: 4.3, y: 0.55, w: 5.7, h: 3.4, transparency: 0 });
   s.addImage({ data: await icon(FaHardHat, AMBER), x: 0.5, y: 0.9, w: 0.7, h: 0.7 });
   s.addText("Incident Lens", { x: 0.5, y: 1.75, w: 9, h: 1.0, fontSize: 48, bold: true, color: WHITE, fontFace: "Arial", isTextBox: true, margin: 0 });
-  s.addText("Learn from 1,200 offshore incident reports without reading every one", { x: 0.5, y: 2.75, w: 8.5, h: 0.6, fontSize: 20, color: AMBER, italic: true, isTextBox: true, margin: 0 });
+  s.addText("Learn from 1,200 offshore incident reports without reading every one", { x: 0.5, y: 2.75, w: 4.6, h: 0.9, fontSize: 20, color: AMBER, italic: true, isTextBox: true, margin: 0 });
   s.addText("Team 2  ·  Track 9 (Local Business & Industry)  ·  Energy Institute partner challenge", { x: 0.5, y: 4.4, w: 9, h: 0.4, fontSize: 14, color: MUTED, isTextBox: true, margin: 0 });
   s.addNotes("Hi, we're Team 2. Incident Lens helps offshore safety teams learn from past incidents without reading every report.");
 
@@ -58,11 +59,11 @@ async function icon(Comp, color) {
   pres.addSection({ title: "Problem" });
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Problem" });
   title(s, "The lessons are buried in free text");
-  const stats = [["1,212", "real offshore incident reports (US federal BSEE data)"], ["3,572", "cause statements written by investigators"], ["31%", "of reports hold a real, actionable fix; the rest is boilerplate"]];
+  const stats = [["1,212", "real offshore incident reports (US federal BSEE data)"], ["3,572", "cause statements written by investigators"], ["26%", "of reports hold a real, actionable fix; the rest is boilerplate"]];
   stats.forEach(([n, l], i) => {
     const x = 0.5 + i * 3.05;
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.35, w: 2.8, h: 1.9, fill: { color: LIGHT }, rectRadius: 0.12, line: { color: LIGHT } });
-    s.addText(n, { x: x + 0.2, y: 1.5, w: 2.4, h: 0.9, fontSize: 44, bold: true, color: i === 2 ? AMBER : INK, fontFace: "Arial", isTextBox: true, margin: 0 });
+    s.addText(n, { x: x + 0.2, y: 1.5, w: 2.4, h: 0.9, fontSize: 44, bold: true, color: i === 2 ? HOT : INK, fontFace: "Arial", isTextBox: true, margin: 0 });
     s.addText(l, { x: x + 0.2, y: 2.4, w: 2.4, h: 0.7, fontSize: 14, color: "4B5563", isTextBox: true, margin: 0, valign: "top" });
   });
   s.addText([
@@ -97,11 +98,16 @@ async function icon(Comp, color) {
   // 4. Demo screenshots (backup)
   s = pres.addSlide({ masterName: "Dark", sectionTitle: "Product" });
   title(s, "Live demo (screenshots as backup)", true);
-  s.addImage({ path: path.join(ROOT, "screenshots", "0-galaxy.jpg"), x: 0.5, y: 1.15, w: 3.6, h: 3.64 });
-  s.addImage({ path: path.join(ROOT, "screenshots", "1-similar-incidents.jpg"), x: 4.3, y: 1.15, w: 3.0, h: 1.875 });
-  s.addImage({ path: path.join(ROOT, "screenshots", "2-cause-and-why.jpg"), x: 4.3, y: 3.15, w: 3.0, h: 1.875 });
-  s.addImage({ path: path.join(ROOT, "screenshots", "5-safety-alert.png"), x: 7.5, y: 1.15, w: 2.0, h: 2.77, sizing: { type: "crop", w: 2.0, h: 2.77 } });
-  s.addText("Galaxy of 1,212 incidents · look-alike search · cause & why · one-click safety alert", { x: 7.5, y: 4.05, w: 2.0, h: 1.0, fontSize: 11, color: LIGHT, isTextBox: true, margin: 0, valign: "top" });
+  s.addImage({ path: path.join(ROOT, "screenshots", "1b-new-report-lands.jpg"), x: 0.5, y: 1.1, w: 4.79, h: 2.6 });
+  s.addImage({ path: path.join(ROOT, "screenshots", "1-similar-incidents.jpg"), x: 0.5, y: 3.85, w: 2.32, h: 1.35, sizing: { type: "cover", w: 2.32, h: 1.35 } });
+  s.addImage({ path: path.join(ROOT, "screenshots", "2-cause-and-why.jpg"), x: 2.97, y: 3.85, w: 2.32, h: 1.35, sizing: { type: "cover", w: 2.32, h: 1.35 } });
+  s.addImage({ path: path.join(ROOT, "screenshots", "5-safety-alert.png"), x: 5.55, y: 1.1, w: 2.1, h: 3.47 });
+  s.addText([
+    { text: "A new report lands among 1,212 past incidents", options: { breakLine: true, paraSpaceAfter: 8 } },
+    { text: "Look-alikes, their causes and past fixes", options: { breakLine: true, paraSpaceAfter: 8 } },
+    { text: "Cause & why: highlighted words drive the answer", options: { breakLine: true, paraSpaceAfter: 8 } },
+    { text: "One click: a printable safety alert for the pre-job meeting" },
+  ], { x: 7.85, y: 1.1, w: 1.65, h: 3.5, fontSize: 11, color: LIGHT, isTextBox: true, margin: 0, valign: "top" });
   s.addNotes("Only if the live demo fails: walk through these screenshots.");
 
   // 5. Results
@@ -110,7 +116,7 @@ async function icon(Comp, color) {
   title(s, `Cause model: macro-F1 ${f2(best.macro_f1)} vs baseline ${f2(base.macro_f1)}`);
   s.addChart(pres.charts.BAR, [{ name: "Macro-F1", labels: ["Always guess most common", "Official baseline (word counts)", "Incident Lens (meaning)"], values: [maj.macro_f1, base.macro_f1, best.macro_f1] }], {
     x: 0.4, y: 1.15, w: 4.5, h: 3.2, barDir: "bar", showValue: true, dataLabelFormatCode: "0.00", dataLabelPosition: "outEnd",
-    chartColors: ["CBD5E1", SLATE, AMBER], showLegend: false, valAxisHidden: true, valGridLine: { style: "none" }, catGridLine: { style: "none" },
+    chartColors: ["CBD5E1", SLATE, TEAL_D], showLegend: false, valAxisHidden: true, valGridLine: { style: "none" }, catGridLine: { style: "none" },
     catAxisLabelColor: "4B5563", catAxisLabelFontSize: 11, dataLabelFontSize: 12, dataLabelColor: INK, catAxisLabelFontFace: "+mn-lt", dataLabelFontFace: "+mn-lt",
     showTitle: true, title: "Macro-F1 (higher is better)", titleFontSize: 12, titleColor: INK, titleFontFace: "+mn-lt", valAxisMaxVal: 0.6,
   });
@@ -119,7 +125,7 @@ async function icon(Comp, color) {
     { name: "Baseline", labels: labs, values: labs.map((l) => base.per_class[l]) },
     { name: "Incident Lens", labels: labs, values: labs.map((l) => best.per_class[l]) },
   ], {
-    x: 5.0, y: 1.15, w: 4.6, h: 3.2, barDir: "col", barGrouping: "clustered", chartColors: [SLATE, AMBER], showLegend: true, legendPos: "t",
+    x: 5.0, y: 1.15, w: 4.6, h: 3.2, barDir: "col", barGrouping: "clustered", chartColors: [SLATE, TEAL_D], showLegend: true, legendPos: "t",
     legendFontSize: 11, legendFontFace: "+mn-lt", valAxisLabelColor: "4B5563", catAxisLabelColor: "4B5563", catAxisLabelFontSize: 10, valAxisLabelFontSize: 10,
     catAxisLabelFontFace: "+mn-lt", valAxisLabelFontFace: "+mn-lt", valGridLine: { color: "E5E7EB", size: 0.5 }, catGridLine: { style: "none" }, valAxisLabelFormatCode: "0.0",
     showTitle: true, title: "F1 per cause category", titleFontSize: 12, titleColor: INK, titleFontFace: "+mn-lt",

@@ -8,43 +8,115 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+import streamlit.components.v1 as components
+from galaxy_component import galaxy_html
 
 ART = Path(__file__).parent / "artifacts"
 GOLD = Path(__file__).parent / "labeling" / "gold_to_label.csv"
 CODE2EL = {"HU": "3", "EQ": "15", "MS": "8", "SU": "17", "CO": "9", "WE": "6"}
-COLORS = {"Human performance": "#F59E0B", "Equipment failure": "#38BDF8", "Management systems": "#A78BFA",
-          "Supervision": "#F472B6", "Work environment": "#34D399", "Communication": "#FB7185"}
+COLORS = {"Human performance": "#2DD4BF", "Equipment failure": "#38BDF8", "Management systems": "#A78BFA",
+          "Supervision": "#F472B6", "Work environment": "#FBBF24", "Communication": "#FF7A45"}
+AC, HOT, GREY = "#2DD4BF", "#FF7A45", "#3E5A6B"
 
 st.set_page_config(page_title="Incident Lens", page_icon="🔎", layout="wide")
 
 st.markdown("""
 <style>
-.block-container {padding-top: 1.6rem; max-width: 1250px;}
-.hero {padding: 22px 28px; border-radius: 18px; margin-bottom: 18px;
-  background: radial-gradient(1200px 300px at 10% -20%, rgba(245,158,11,.25), transparent),
-              linear-gradient(135deg, #0F1A2E 0%, #13223D 100%);
-  border: 1px solid rgba(255,255,255,.07);}
-.hero h1 {margin: 0; font-size: 2.1rem; letter-spacing: -.5px;}
-.hero p {margin: 6px 0 0; color: #9CA3AF; font-size: 1.02rem;}
-.chip {display:inline-block; padding: 3px 10px; border-radius: 999px; font-size: .78rem; margin: 0 6px 6px 0;
-  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09); color:#D1D5DB;}
-.card {padding: 16px 18px; border-radius: 14px; background: #131C2E; border: 1px solid rgba(255,255,255,.07);
-  margin-bottom: 12px;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+:root{--bg:#061826;--sf:#0B2233;--sf2:#0E2A3F;--ln:rgba(94,234,212,.12);--tx:#E6F4F1;--mu:#7FA7B5;--ac:#2DD4BF;--ac2:#5EEAD4;--hot:#FF7A45;}
+html, body, [class*="css"], .stMarkdown, .stTextArea textarea, button {font-family: Inter, ui-sans-serif, system-ui, sans-serif !important;}
+#MainMenu, footer, [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {display:none !important;}
+.stApp {background: radial-gradient(1200px 600px at 85% -10%, rgba(45,212,191,.10), transparent 60%),
+  radial-gradient(900px 500px at -10% 30%, rgba(56,189,248,.07), transparent 60%), var(--bg);}
+.block-container {padding-top: 1.4rem; max-width: 1280px;}
+h1,h2,h3,h4 {letter-spacing:-.02em; color: var(--tx);}
+.hero {position:relative; padding: 30px 34px 26px; border-radius: 22px; margin-bottom: 18px; overflow:hidden;
+  background: linear-gradient(135deg, rgba(14,42,63,.9), rgba(6,24,38,.9)); border: 1px solid var(--ln);}
+.hero:before {content:""; position:absolute; inset:-40% -10% auto auto; width:520px; height:520px; border-radius:50%;
+  background: radial-gradient(circle, rgba(45,212,191,.22), transparent 65%); filter: blur(10px);}
+.eyebrow {font: 600 .74rem 'JetBrains Mono', monospace; letter-spacing:.18em; color: var(--ac2);}
+.hero h1 {margin: 8px 0 0; font-size: 2.6rem; font-weight: 800; line-height:1.08; position:relative;}
+.hero h1 em {font-style:normal; background: linear-gradient(90deg,#5EEAD4,#38BDF8); -webkit-background-clip:text; color:transparent;}
+.hero p {margin: 10px 0 0; color: var(--mu); font-size: 1.04rem; max-width: 760px; position:relative;}
+.kpis {display:flex; gap: 34px; margin-top: 22px; position:relative; flex-wrap:wrap;}
+.kpis .v {font-size: 2rem; font-weight: 800; color: var(--tx); line-height:1; font-variant-numeric: tabular-nums;}
+.kpis .l {font-size: .78rem; color: var(--mu); margin-top: 6px; text-transform: uppercase; letter-spacing:.08em;}
+@property --n {syntax:'<integer>'; initial-value:0; inherits:false;}
+.count {animation: cnt 1.8s cubic-bezier(.2,.8,.2,1) forwards; counter-reset: n var(--n);}
+.count:after {content: counter(n);}
+@keyframes cnt {to {--n: var(--t);}}
+.chip {display:inline-block; padding: 4px 11px; border-radius: 999px; font-size: .76rem; margin: 0 6px 6px 0;
+  background: rgba(45,212,191,.07); border: 1px solid var(--ln); color:#BFE3DD;}
+.card {padding: 16px 18px; border-radius: 16px; background: linear-gradient(180deg, var(--sf2), var(--sf)); border: 1px solid var(--ln);
+  margin-bottom: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.25);}
 .card h4 {margin: 0 0 6px; font-size: 1.02rem;}
-.sim {float:right; font-weight:700; color:#F59E0B;}
-.muted {color:#9CA3AF; font-size:.88rem;}
-.lesson {border-left: 3px solid #F59E0B; padding: 4px 10px; margin: 6px 0; background: rgba(245,158,11,.06); border-radius: 0 8px 8px 0;}
-.cause {border-left: 3px solid #38BDF8; padding: 4px 10px; margin: 6px 0; background: rgba(56,189,248,.06); border-radius: 0 8px 8px 0;}
+.sim {float:right; font: 600 .82rem 'JetBrains Mono', monospace; color: var(--bg); background: var(--ac); padding: 2px 9px; border-radius: 999px;}
+.muted {color: var(--mu); font-size:.88rem;}
+.lesson {border-left: 3px solid var(--ac); padding: 7px 12px; margin: 7px 0; background: rgba(45,212,191,.07); border-radius: 0 10px 10px 0;}
+.cause {border-left: 3px solid #38BDF8; padding: 5px 11px; margin: 6px 0; background: rgba(56,189,248,.06); border-radius: 0 10px 10px 0;}
 .big {font-size: 2.4rem; font-weight: 800; line-height: 1;}
-.kpi {padding: 16px; border-radius: 14px; background:#131C2E; border:1px solid rgba(255,255,255,.07); text-align:center;}
-.kpi .lbl {color:#9CA3AF; font-size:.82rem; margin-top:6px;}
-.w {padding: 1px 2px; border-radius: 4px;}
-@keyframes rise {from {opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;}}
-.card, .kpi, .lesson, .cause {animation: rise .45s ease both;}
-.card:hover {border-color: rgba(245,158,11,.45); transition: border-color .2s;}
-.stTabs [data-baseweb="tab"] {font-size: 1rem; padding: 10px 14px;}
-.stTabs [aria-selected="true"] {color: #F59E0B !important;}
+.kpi {padding: 18px; border-radius: 16px; background: linear-gradient(180deg, var(--sf2), var(--sf)); border:1px solid var(--ln); text-align:center;}
+.kpi .lbl {color: var(--mu); font-size:.8rem; margin-top:8px;}
+.w {padding: 1px 3px; border-radius: 5px;}
+.sec {font: 600 .72rem 'JetBrains Mono', monospace; letter-spacing:.16em; color: var(--ac2); margin: 4px 0 2px;}
+@keyframes rise {from {opacity:0; transform: translateY(10px);} to {opacity:1; transform:none;}}
+
+.card:hover {border-color: rgba(45,212,191,.45); transform: translateY(-2px); transition: all .2s;}
+[role="tablist"] {gap: 6px; background: rgba(8,44,68,.65); padding: 6px; border-radius: 14px; border:1px solid var(--ln); backdrop-filter: blur(6px);}
+[role="tab"] {font-size: .95rem; padding: 8px 16px !important; border-radius: 10px; height:auto; border-bottom:0 !important;}
+[role="tab"][aria-selected="true"] {background: rgba(45,212,191,.16) !important; color: var(--ac2) !important;}
+[role="tab"][aria-selected="true"] p {color: var(--ac2) !important;}
+[data-baseweb="tab-highlight"], [data-baseweb="tab-border"], .stTabs [data-testid="stTabsHighlight"] {display:none !important;}
+.stButton button[kind="primary"] {background: linear-gradient(90deg,#FF7A45,#F97316); border:0; color:#fff; font-weight:700;}
+textarea {border-radius: 12px !important;}
 </style>""", unsafe_allow_html=True)
+
+st.markdown("""<style>
+.stApp {background: linear-gradient(180deg, #0F4C68 0%, #0B3A55 22%, #082C44 50%, #061F33 78%, #041626 100%) !important;}
+.ocean {position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;}
+.block-container, [data-testid="stMainBlockContainer"] {position:relative; z-index:1;}
+.ocean .surf {position:absolute; top:0; left:0; right:0; height:140px;
+  background: radial-gradient(60% 120% at 50% -40%, rgba(165,243,252,.28), transparent 70%);}
+.ocean .surf:after {content:""; position:absolute; left:-10%; right:-10%; top:0; height:18px; opacity:.35;
+  background: radial-gradient(14px 8px at 14px 0, transparent 10px, rgba(204,251,241,.55) 11px, transparent 13px) 0 0/28px 18px repeat-x;
+  animation: wave 9s linear infinite;}
+@keyframes wave {to {transform: translateX(28px);}}
+.ocean b {position:absolute; top:-10%; height:85%; transform-origin: top center; transform: skewX(-12deg);
+  background: linear-gradient(180deg, rgba(165,243,252,.16), rgba(165,243,252,0) 85%); filter: blur(14px);
+  animation: ray 11s ease-in-out infinite alternate;}
+@keyframes ray {0% {opacity:.25; transform: skewX(-16deg) translateX(-30px);} 100% {opacity:.9; transform: skewX(-6deg) translateX(30px);}}
+.ocean i {position:absolute; bottom:-30px; border-radius:50%; border:1px solid rgba(204,251,241,.45);
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), rgba(165,243,252,.08) 60%);
+  animation: rise linear infinite;}
+@keyframes rise {0% {transform: translate(0,0); opacity:0;} 10% {opacity:.8;} 50% {transform: translate(14px,-55vh);}
+  100% {transform: translate(-8px,-112vh); opacity:0;}}
+.ocean .floor {position:absolute; left:0; right:0; bottom:0; height:120px; opacity:.55;}
+.gauge {position:fixed; left:26px; top:18vh; height:62vh; width:60px; z-index:0; pointer-events:none;
+  border-left:1px solid rgba(94,234,212,.35); font: 500 10px 'JetBrains Mono', monospace; color: rgba(165,243,252,.6);}
+.gauge .tk {position:absolute; left:0; width:10px; border-top:1px solid rgba(94,234,212,.5);}
+.gauge .tk span {position:absolute; left:14px; top:-7px; white-space:nowrap;}
+.gauge .ttl {position:absolute; top:-26px; left:-4px; letter-spacing:.2em; color: rgba(94,234,212,.8);}
+.gauge .mk {position:absolute; left:-6px; width:11px; height:11px; border-radius:50%; background:#5EEAD4; top:0;
+  box-shadow: 0 0 12px #5EEAD4; animation: dive linear both; animation-timeline: scroll(nearest);}
+@keyframes dive {from {top:0;} to {top:100%;}}
+.sonar {position:fixed; right:-90px; bottom:-90px; width:300px; height:300px; z-index:0; pointer-events:none;}
+.sonar span {position:absolute; inset:0; border-radius:50%; border:1px solid rgba(94,234,212,.45); animation: ping 6s ease-out infinite;}
+.sonar span:nth-child(2) {animation-delay:2s;} .sonar span:nth-child(3) {animation-delay:4s;}
+.sonar:after {content:""; position:absolute; inset:0; border-radius:50%;
+  background: conic-gradient(from 0deg, rgba(94,234,212,.22), transparent 18%); animation: sweep 6s linear infinite;}
+@keyframes ping {from {transform: scale(.15); opacity:.9;} to {transform: scale(1); opacity:0;}}
+@keyframes sweep {to {transform: rotate(360deg);}}
+.hero, .card, .kpi {backdrop-filter: blur(6px);}
+.hero {background: linear-gradient(135deg, rgba(16,70,96,.72), rgba(6,31,51,.72)) !important;}
+.card, .kpi {background: linear-gradient(180deg, rgba(16,58,82,.78), rgba(10,40,62,.78)) !important;}
+@media (max-width: 1400px) { .gauge {display:none;} }
+</style>
+<div class="ocean"><div class="surf"></div><b style='left:8%;animation-delay:-0s;width:120px'></b><b style='left:22%;animation-delay:-3s;width:70px'></b><b style='left:38%;animation-delay:-6s;width:160px'></b><b style='left:55%;animation-delay:-2s;width:90px'></b><b style='left:70%;animation-delay:-8s;width:140px'></b><b style='left:86%;animation-delay:-5s;width:80px'></b><i style='left:33.1%;width:5px;height:5px;animation-duration:24s;animation-delay:-2s'></i><i style='left:53.4%;width:7px;height:7px;animation-duration:15s;animation-delay:-15s'></i><i style='left:5.6%;width:7px;height:7px;animation-duration:15s;animation-delay:-3s'></i><i style='left:42.8%;width:11px;height:11px;animation-duration:16s;animation-delay:-7s'></i><i style='left:62.2%;width:12px;height:12px;animation-duration:23s;animation-delay:-12s'></i><i style='left:95.7%;width:4px;height:4px;animation-duration:28s;animation-delay:-9s'></i><i style='left:15.8%;width:5px;height:5px;animation-duration:19s;animation-delay:-24s'></i><i style='left:19.3%;width:9px;height:9px;animation-duration:24s;animation-delay:-11s'></i><i style='left:54.6%;width:5px;height:5px;animation-duration:15s;animation-delay:-6s'></i><i style='left:67.3%;width:7px;height:7px;animation-duration:19s;animation-delay:-18s'></i><i style='left:45.5%;width:6px;height:6px;animation-duration:27s;animation-delay:-21s'></i><i style='left:25.4%;width:9px;height:9px;animation-duration:22s;animation-delay:-26s'></i><i style='left:72.0%;width:6px;height:6px;animation-duration:30s;animation-delay:-4s'></i><i style='left:42.1%;width:10px;height:10px;animation-duration:16s;animation-delay:-15s'></i><i style='left:5.8%;width:9px;height:9px;animation-duration:26s;animation-delay:-17s'></i><i style='left:86.0%;width:7px;height:7px;animation-duration:25s;animation-delay:-18s'></i><i style='left:57.7%;width:8px;height:8px;animation-duration:27s;animation-delay:-28s'></i><i style='left:47.5%;width:9px;height:9px;animation-duration:15s;animation-delay:-21s'></i><i style='left:64.1%;width:12px;height:12px;animation-duration:27s;animation-delay:-9s'></i><i style='left:39.0%;width:9px;height:9px;animation-duration:14s;animation-delay:-14s'></i><i style='left:18.1%;width:5px;height:5px;animation-duration:15s;animation-delay:-23s'></i><i style='left:14.4%;width:6px;height:6px;animation-duration:20s;animation-delay:-26s'></i>
+<svg class="floor" viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0 90 C120 70 220 100 340 84 C470 66 560 96 700 88 C850 78 930 58 1060 76 C1180 92 1300 70 1440 82 V120 H0Z" fill="#031019"/>
+<path d="M0 104 C160 92 300 112 480 100 C660 90 820 112 1000 102 C1180 92 1320 108 1440 100 V120 H0Z" fill="#020B12"/></svg></div>
+<div class="gauge"><div class="ttl">DEPTH</div><div class='tk' style='top:0%'><span>0 m</span></div><div class='tk' style='top:25%'><span>50 m</span></div><div class='tk' style='top:50%'><span>100 m</span></div><div class='tk' style='top:75%'><span>150 m</span></div><div class='tk' style='top:100%'><span>200 m</span></div><div class="mk"></div></div>
+<div class="sonar"><span></span><span></span><span></span></div>
+""", unsafe_allow_html=True)
 
 
 # ---------- loading ----------
@@ -91,10 +163,10 @@ def load():
 
 inc, EMB, M, EV, OOF = load()
 THEMES = inc.theme.value_counts().index.tolist()
-PALETTE = ["#F59E0B", "#38BDF8", "#A78BFA", "#34D399", "#FB7185", "#F472B6", "#FACC15", "#2DD4BF", "#818CF8",
-           "#FB923C", "#94A3B8", "#C084FC"]
+PALETTE = ["#2DD4BF", "#38BDF8", "#A78BFA", "#FBBF24", "#FF7A45", "#F472B6", "#5EEAD4", "#60A5FA", "#C084FC",
+           "#34D399", "#94A3B8", "#FDA4AF"]
 TCOL = {t: PALETTE[i % len(PALETTE)] for i, t in enumerate(THEMES)}
-DARK = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#E5E7EB")
+DARK = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA")
 
 
 def galaxy_fig(highlight=None, star=None, height=560, legend=True):
@@ -117,29 +189,67 @@ def galaxy_fig(highlight=None, star=None, height=560, legend=True):
                                  marker=dict(size=24, symbol="star", color="#FFFFFF", line=dict(width=2, color="#F59E0B"))))
     fig.update_layout(height=height, margin=dict(l=0, r=0, t=10, b=0), showlegend=legend,
                       legend=dict(font=dict(size=11), itemsizing="constant", bgcolor="rgba(0,0,0,0)"),
-                      xaxis=dict(visible=False), yaxis=dict(visible=False), hoverlabel=dict(bgcolor="#131C2E"), **DARK)
+                      xaxis=dict(visible=False), yaxis=dict(visible=False), hoverlabel=dict(bgcolor="#0B2233"), **DARK)
     return fig
 
 
+def short(t, n):
+    """Trim to n chars, preferring a sentence end."""
+    if len(t) <= n:
+        return t
+    cut = t[:n]
+    i = cut.rfind(". ")
+    return cut[:i + 1] if i > 60 else cut.rstrip() + "…"
+
+
 def alert_html(q, res, tally, recs, watch):
-    items = "".join(f"<li><b>{esc(r.type) or 'Incident'} ({esc(r.date[:4]) or 'undated'})</b>: {esc(r.what.lstrip('-• ')[:260])}…</li>" for _, r in res.head(3).iterrows())
-    causes = "".join(f"<li>{esc(k)}: {v} cause statement{'s' if v > 1 else ''}</li>" for k, v in tally.items())
-    fixes = "".join(f"<li>☐ {esc(r[:220])}</li>" for r in recs[:5])
-    watch_li = "".join(f"<li>☐ {esc(w[:200])}</li>" for w in watch)
+    """Printable industrial hazard-poster style safety alert."""
+    items = "".join(f"<li><b>{esc(r.type) or 'Incident'} · {esc(r.date[:4]) or 'undated'} · {r.sim*100:.0f}% match</b><br>{esc(r.what.lstrip('-• ')[:240])}…</li>"
+                    for _, r in res.head(3).iterrows())
+    total = sum(tally.values()) or 1
+    causes = "".join(f"<div class='bar'><span>{esc(k)}</span><i style='width:{100*v/total:.0f}%'></i><b>{v}</b></div>" for k, v in tally.items())
+    fixes = "".join(f"<li><span class='box'></span>{esc(short(r, 240))}</li>" for r in recs[:5])
+    watch_li = "".join(f"<li><span class='box'></span>{esc(short(w, 220))}</li>" for w in watch)
     return f"""<!doctype html><html><head><meta charset="utf-8"><title>Safety Alert</title><style>
-html{{background:#fff}} body{{font-family:Calibri,Arial,sans-serif;max-width:780px;margin:0 auto;padding:24px;color:#111827;line-height:1.45;background:#fff}}
-.top{{background:#0B1220;color:#fff;padding:18px 22px;border-radius:12px}} .top h1{{margin:0;font-size:26px}}
-.top p{{margin:6px 0 0;color:#F59E0B}} h2{{font-size:17px;margin:22px 0 6px;color:#B45309}}
-.box{{background:#F3F4F6;padding:10px 14px;border-radius:8px}} li{{margin:5px 0}} ul{{padding-left:20px}}
-.foot{{color:#6B7280;font-size:12px;margin-top:24px}}</style></head><body>
-<div class="top"><h1>⚠ Safety Alert: this has happened before</h1><p>Generated by Incident Lens from {len(inc):,} past offshore incident reports</p></div>
-<h2>The new report</h2><div class="box">{esc(q)}</div>
-<h2>Similar past incidents</h2><ul>{items}</ul>
-<h2>What caused them (model-predicted categories)</h2><ul>{causes or '<li>No causes recorded</li>'}</ul>
-<h2>Watch for: what went wrong in those incidents</h2><ul style="list-style:none;padding-left:4px">{watch_li or '<li>No causes recorded</li>'}</ul>
-<h2>Fixes investigators recommended</h2><ul style="list-style:none;padding-left:4px">{fixes or '<li>No closely matching fix on record. Discuss controls at the pre-job meeting.</li>'}</ul>
-<p class="foot">Checklist items are recommendations investigators wrote for past incidents (public BSEE reports).
-A decision aid for supervisors, not a substitute for a job safety analysis.</p></body></html>"""
+html{{background:#fff}} *{{box-sizing:border-box}}
+body{{font-family:'Arial Black',Arial,Helvetica,sans-serif;max-width:820px;margin:0 auto;padding:22px;color:#111;background:#fff}}
+.stripe{{height:22px;background:repeating-linear-gradient(-45deg,#FFD60A 0 22px,#111 22px 44px);border-radius:4px}}
+.head{{background:#FFD60A;border:6px solid #111;border-top:0;border-bottom:0;padding:18px 24px;display:flex;gap:20px;align-items:center}}
+.tri{{width:88px;height:78px;flex:none}}
+.head h1{{margin:0;font-size:46px;line-height:.95;letter-spacing:-1px}}
+.head p{{margin:6px 0 0;font:700 17px Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em}}
+.meta{{display:flex;justify-content:space-between;font:12px Arial,sans-serif;color:#444;margin:10px 2px 4px}}
+.meta b{{color:#0E7C70}}
+section{{border:3px solid #111;border-radius:10px;padding:14px 18px 10px 62px;margin:14px 0;position:relative;font:15px/1.45 Arial,sans-serif}}
+section h2{{font:900 16px 'Arial Black',Arial,sans-serif;text-transform:uppercase;margin:0 0 8px;letter-spacing:.03em}}
+.n{{position:absolute;left:14px;top:12px;width:34px;height:34px;border-radius:50%;background:#111;color:#FFD60A;
+  font:900 18px 'Arial Black',Arial;display:flex;align-items:center;justify-content:center}}
+.new{{background:#FFF8D6}} ul{{margin:0;padding:0;list-style:none}} li{{margin:7px 0;display:flex;gap:10px}}
+section:not(.chk) li{{display:block;padding-left:12px;border-left:4px solid #FFD60A}}
+.box{{flex:none;width:18px;height:18px;border:2.5px solid #111;border-radius:3px;margin-top:1px}}
+.bar{{display:grid;grid-template-columns:170px 1fr 30px;gap:10px;align-items:center;margin:6px 0}}
+.bar i{{display:block;height:14px;background:#111;border-radius:2px}} .bar b{{text-align:right}}
+.sign{{display:flex;gap:30px;font:13px Arial,sans-serif;margin:16px 4px 12px}} .sign div{{flex:1;border-top:2px solid #111;padding-top:4px}}
+.foot{{font:11.5px Arial,sans-serif;color:#555;margin:10px 2px}}
+@media print{{body{{padding:0}} section{{break-inside:avoid}}}}
+</style></head><body>
+<div class="stripe"></div>
+<div class="head"><svg class="tri" viewBox="0 0 100 88"><path d="M50 4 L96 84 H4 Z" fill="#111"/><path d="M50 18 L84 78 H16 Z" fill="#FFD60A"/>
+<rect x="45" y="36" width="10" height="24" rx="3" fill="#111"/><circle cx="50" cy="68" r="5.5" fill="#111"/></svg>
+<div><h1>SAFETY ALERT</h1><p>This has happened before. Read before the job.</p></div></div>
+<div class="stripe"></div>
+<div class="meta"><span>Generated by <b>Incident Lens</b> from {len(inc):,} past offshore incident reports (public BSEE)</span><span>Pre-job briefing</span></div>
+<section class="new"><div class="n">1</div><h2>The new report</h2>{esc(q)}</section>
+<section><div class="n">2</div><h2>Similar past incidents</h2><ul>{items}</ul></section>
+<section><div class="n">3</div><h2>What caused them</h2>{causes or 'No causes recorded'}<div class="foot" style="margin:6px 0 0">Cause categories predicted by our model for the causes of these look-alikes.</div></section>
+<section class="chk"><div class="n">4</div><h2>Watch for</h2><ul>{watch_li or '<li>No causes recorded</li>'}</ul></section>
+<section class="chk"><div class="n">5</div><h2>Fixes investigators recommended</h2><ul>{fixes or '<li><span class="box"></span>No closely matching fix on record. Discuss controls at the pre-job meeting.</li>'}</ul></section>
+<div class="sign"><div>Briefed by</div><div>Crew signatures</div><div>Date</div></div>
+<div class="stripe" style="height:12px"></div>
+<p class="foot">Checklist items are what investigators found and recommended for past incidents. A decision aid for supervisors,
+not a substitute for a job safety analysis.</p></body></html>"""
+
+
 NAMES = M["names"]
 CLF = M["lr_emb"]
 
@@ -156,23 +266,34 @@ def predict(texts):
 # ---------- header ----------
 best = EV["results"][EV["best"]]
 base = EV["results"]["Baseline: TF-IDF + LR (official)"]
-st.markdown(f"""<div class="hero"><h1>🔎 Incident Lens</h1>
-<p>Learn from {len(inc):,} real offshore incident reports without reading every one. Find look-alike incidents, see likely causes
-and why, and spot reports missing key details.</p>
-<div style="margin-top:12px"><span class="chip">Track 9 · Local Business &amp; Industry</span>
-<span class="chip">Real BSEE report text only (synthetic cells excluded)</span>
-<span class="chip">Cause model macro-F1 {best['macro_f1']:.2f} vs baseline {base['macro_f1']:.2f}</span>
+n_fix = int((inc.recs.str.len() > 0).sum())
+st.markdown(f"""<div class="hero"><div class="eyebrow">INCIDENT LENS · OFFSHORE SAFETY INTELLIGENCE</div>
+<h1>Every offshore incident,<br><em>so the next one doesn't happen.</em></h1>
+<p>Search {len(inc):,} real BSEE incident reports by meaning, see what caused look-alikes and what investigators recommended,
+and turn it into a printable safety alert in one click.</p>
+<div class="kpis">
+<div><div class="v count" style="--t:{len(inc)}"></div><div class="l">real reports</div></div>
+<div><div class="v count" style="--t:{len(THEMES)}"></div><div class="l">themes discovered</div></div>
+<div><div class="v">{best['macro_f1']:.2f}</div><div class="l">cause macro-F1 (baseline {base['macro_f1']:.2f})</div></div>
+<div><div class="v" style="color:#FF7A45"><span class="count" style="--t:{round(100*n_fix/len(inc))}"></span>%</div><div class="l">reports with a real fix</div></div>
+</div>
+<div style="margin-top:18px;position:relative"><span class="chip">Track 9 · Local Business &amp; Industry</span>
+<span class="chip">Real report text only · synthetic cells excluded</span>
 <span class="chip">Runs fully local · no data leaves the laptop</span></div></div>""", unsafe_allow_html=True)
 
-tab0, tab1, tab2, tab3, tab4 = st.tabs(["🌌  Incident galaxy", "🔍  Similar incidents", "🧠  Cause & why",
-                                        "⚠️  Report gaps & trends", "📊  How well it works"])
+TAB_NAMES = ["🌌  Incident galaxy", "🔍  Similar incidents", "🧠  Cause & why", "⚠️  Report gaps & trends", "📊  How well it works"]
+_sel = st.query_params.get("tab", "0")
+_order = [int(_sel)] + [i for i in range(5) if i != int(_sel)] if _sel in "01234" and len(_sel) == 1 else list(range(5))
+_ts = st.tabs([TAB_NAMES[i] for i in _order])
+tab0, tab1, tab2, tab3, tab4 = (_ts[_order.index(i)] for i in range(5))
 
 # ---------- TAB 0: galaxy ----------
 with tab0:
+    st.markdown("<div class='sec'>01 · THE MAP</div>", unsafe_allow_html=True)
     st.markdown("#### Every incident, placed by meaning")
     st.caption(f"Each dot is one of {len(inc):,} real reports. Reports that describe similar events sit close together. "
                "Colors are 12 themes the model discovered on its own (k-means on the embeddings; we named them by their top words). Hover a dot to read it.")
-    st.plotly_chart(galaxy_fig(), use_container_width=True)
+    components.html(galaxy_html(inc, THEMES, TCOL, height=640, title_note=f"{len(inc):,} real reports · 12 themes found by the model · hover any star"), height=650)
     cols = st.columns(4)
     for i, t in enumerate(THEMES[:8]):
         d = inc[inc.theme == t]
@@ -201,6 +322,10 @@ with tab1:
         top = np.argsort(-sims)[:k]
         res = inc.iloc[top].assign(sim=sims[top])
 
+        star = (float(res.x.mean()), float(res.y.mean()))
+        st.markdown("<div class='sec'>WHERE THIS REPORT LANDS</div>", unsafe_allow_html=True)
+        components.html(galaxy_html(inc, THEMES, TCOL, height=430, target=star, neighbors=top, sims=sims[top],
+                                    title_note=f"New report vs {len(inc):,} past incidents · lines show the {k} closest"), height=440)
         left, right = st.columns([3, 2])
         with right:
             st.markdown("#### What past incidents teach")
@@ -211,7 +336,7 @@ with tab1:
                 fig = go.Figure(go.Bar(x=tally.values, y=tally.index, orientation="h",
                                        marker_color=[COLORS.get(i, "#888") for i in tally.index]))
                 fig.update_layout(height=230, margin=dict(l=0, r=10, t=10, b=0), paper_bgcolor="rgba(0,0,0,0)",
-                                  plot_bgcolor="rgba(0,0,0,0)", font_color="#E5E7EB", xaxis_title="cause statements in look-alikes")
+                                  plot_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA", xaxis_title="cause statements in look-alikes")
                 st.plotly_chart(fig, use_container_width=True)
                 st.caption("Cause categories predicted by our model for the causes of these look-alike incidents.")
             st.markdown("**Fixes that were recommended before**")
@@ -223,25 +348,20 @@ with tab1:
             else:
                 recs = []
             st.caption("From the 40 closest incidents: actionable fixes that closely match this report (boilerplate removed; "
-                       "only 373 of 1,212 reports contain an actionable fix at all).")
+                       f"only {n_fix} of {len(inc):,} reports contain an actionable fix at all).")
             for r in recs:
                 st.markdown(f"<div class='lesson'>{esc(r[:260])}</div>", unsafe_allow_html=True)
             if not recs:
                 st.caption("No recommendations recorded for these incidents.")
-            st.markdown("**Where this report lands**")
-            star = (float(res.x.mean()), float(res.y.mean()))
-            st.plotly_chart(galaxy_fig(highlight=top, star=star, height=300, legend=False), use_container_width=True)
             tally_s = tally.to_dict() if all_causes else {}
-            html_doc = alert_html(q, res, tally_s, recs, [c for cs in res.causes for c in cs][:6])
+            watch = [c.strip() for cs in res.causes for c in cs if c.strip()[:1].isupper() and c.strip().endswith((".", ")"))]
+            html_doc = alert_html(q, res, tally_s, recs, list(dict.fromkeys(watch))[:6])
             if st.button("⚠️  Generate safety alert", type="primary", use_container_width=True):
                 st.session_state["alert"] = html_doc
-            if st.session_state.get("alert"):
+                st.session_state["alert_q"] = q
+            if st.session_state.get("alert") and st.session_state.get("alert_q") == q:
                 st.download_button("⬇  Download alert (HTML, printable)", st.session_state["alert"], "safety_alert.html",
                                    "text/html", use_container_width=True)
-    if st.session_state.get("alert") and q.strip():
-        st.markdown("#### Safety alert preview")
-        import streamlit.components.v1 as components
-        components.html(st.session_state["alert"], height=760, scrolling=True)
         with left:
             st.markdown("#### Most similar past incidents")
             for _, r in res.iterrows():
@@ -253,6 +373,9 @@ with tab1:
 <div class="muted" style="margin-bottom:2px">Causes found by the investigator</div>{causes}</div>""", unsafe_allow_html=True)
         st.caption("Similarity = cosine similarity of meaning (bge-small embeddings), not keyword overlap. "
                    "Look-alikes are a starting point for an investigator, not a conclusion.")
+    if st.session_state.get("alert") and st.session_state.get("alert_q") == q:
+        st.markdown("<div class='sec'>SAFETY ALERT PREVIEW</div>", unsafe_allow_html=True)
+        components.html(st.session_state["alert"], height=1100, scrolling=True)
 
 # ---------- TAB 2: cause ----------
 CAUSE_EX = [
@@ -284,7 +407,7 @@ with tab2:
             fig = go.Figure(go.Bar(x=[p[o] for o in order][::-1], y=order[::-1], orientation="h",
                                    marker_color=[COLORS[o] for o in order][::-1]))
             fig.update_layout(height=250, margin=dict(l=0, r=10, t=10, b=0), xaxis_tickformat=".0%",
-                              paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#E5E7EB")
+                              paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA")
             st.plotly_chart(fig, use_container_width=True)
         with b:
             st.markdown("#### Why: which words pushed the answer")
@@ -326,11 +449,11 @@ with tab3:
     st.write("")
     yr = g.dropna(subset=["year"]).groupby("year")[["No cause recorded", "No actionable fix"]].mean() * 100
     fig = go.Figure()
-    for cname, colr in [("No cause recorded", "#FB7185"), ("No actionable fix", "#F59E0B")]:
+    for cname, colr in [("No cause recorded", HOT), ("No actionable fix", AC)]:
         fig.add_trace(go.Scatter(x=yr.index, y=yr[cname], name=cname, mode="lines+markers", line_color=colr))
     fig.update_layout(height=280, title="Share of reports missing key details, by year (%)",
                       margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                      font_color="#E5E7EB", legend=dict(orientation="h"))
+                      font_color="#D5EEEA", legend=dict(orientation="h"))
     st.plotly_chart(fig, use_container_width=True)
     tr = inc.dropna(subset=["year"]).query("year >= 2000").groupby(["year", "theme"]).size().unstack(fill_value=0)
     fig = go.Figure()
@@ -358,7 +481,7 @@ with tab4:
     maj = EV["results"]["Majority class (always guess most common)"]
     k1.markdown(f"<div class='kpi'><div class='big'>{maj['macro_f1']:.2f}</div><div class='lbl'>Always guess the most common class</div></div>", unsafe_allow_html=True)
     k2.markdown(f"<div class='kpi'><div class='big'>{base['macro_f1']:.2f}</div><div class='lbl'>Official baseline (TF-IDF word counts)</div></div>", unsafe_allow_html=True)
-    k3.markdown(f"<div class='kpi'><div class='big' style='color:#F59E0B'>{best['macro_f1']:.2f}</div><div class='lbl'>Incident Lens (meaning embeddings)</div></div>", unsafe_allow_html=True)
+    k3.markdown(f"<div class='kpi'><div class='big' style='color:#2DD4BF'>{best['macro_f1']:.2f}</div><div class='lbl'>Incident Lens (meaning embeddings)</div></div>", unsafe_allow_html=True)
 
     a, b = st.columns(2)
     with a:
@@ -366,28 +489,28 @@ with tab4:
         fig = go.Figure()
         for n in names:
             r = EV["results"][n]
-            fig.add_trace(go.Scatter(x=[r["macro_f1"]], y=[n], mode="markers", marker=dict(size=14, color="#F59E0B" if n == EV["best"] else "#64748B"),
+            fig.add_trace(go.Scatter(x=[r["macro_f1"]], y=[n], mode="markers", marker=dict(size=14, color=AC if n == EV["best"] else GREY),
                                      error_x=dict(type="data", symmetric=False, array=[r["ci"][1] - r["macro_f1"]], arrayminus=[r["macro_f1"] - r["ci"][0]]),
                                      showlegend=False))
         fig.update_layout(title="Macro-F1 with 95% interval (no overlap = real difference)", height=300,
                           margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                          font_color="#E5E7EB", xaxis_range=[0.2, 0.6])
+                          font_color="#D5EEEA", xaxis_range=[0.2, 0.6])
         st.plotly_chart(fig, use_container_width=True)
     with b:
         labs = EV["labels"]
-        fig = go.Figure([go.Bar(name="Baseline", x=labs, y=[base["per_class"][l] for l in labs], marker_color="#64748B"),
-                         go.Bar(name="Incident Lens", x=labs, y=[best["per_class"][l] for l in labs], marker_color="#F59E0B")])
+        fig = go.Figure([go.Bar(name="Baseline", x=labs, y=[base["per_class"][l] for l in labs], marker_color=GREY),
+                         go.Bar(name="Incident Lens", x=labs, y=[best["per_class"][l] for l in labs], marker_color=AC)])
         fig.update_layout(title="F1 per category: biggest gains on the rare ones", barmode="group", height=330,
                           margin=dict(l=0, r=0, t=70, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                          font_color="#E5E7EB", legend=dict(orientation="h", y=1.12, x=0), xaxis_tickangle=-25)
+                          font_color="#D5EEEA", legend=dict(orientation="h", y=1.12, x=0), xaxis_tickangle=-25)
         st.plotly_chart(fig, use_container_width=True)
 
     c, d = st.columns(2)
     with c:
         cm = np.array(EV["confusion"])
-        fig = go.Figure(go.Heatmap(z=cm, x=labs, y=labs, colorscale="YlOrBr", text=cm, texttemplate="%{text}"))
+        fig = go.Figure(go.Heatmap(z=cm, x=labs, y=labs, colorscale=[[0, "#0B2233"], [0.5, "#14776E"], [1, "#5EEAD4"]], text=cm, texttemplate="%{text}"))
         fig.update_layout(title="Where it gets confused (rows = investigator, cols = model)", height=380,
-                          margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", font_color="#E5E7EB",
+                          margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", font_color="#D5EEEA",
                           yaxis_autorange="reversed")
         st.plotly_chart(fig, use_container_width=True)
     with d:
