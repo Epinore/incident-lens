@@ -174,6 +174,26 @@ st.markdown("""<style>
 .hero {background: linear-gradient(135deg, rgba(16,70,96,.72), rgba(6,31,51,.72)) !important;}
 .card, .kpi {background: linear-gradient(180deg, rgba(16,58,82,.78), rgba(10,40,62,.78)) !important;}
 @media (max-width: 1400px) { .gauge {display:none;} }
+
+.ocean:before, .ocean:after {content:""; position:absolute; left:-20%; right:-20%; top:0; height:75vh; pointer-events:none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='520' height='520'><filter id='f'><feTurbulence type='turbulence' baseFrequency='.018' numOctaves='1' seed='7'/><feColorMatrix values='0 0 0 0 .80 0 0 0 0 .98 0 0 0 0 .95 -14 0 0 0 1.25'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>"); background-size: 520px 520px; mix-blend-mode: screen; opacity:.10;
+  -webkit-mask-image: linear-gradient(180deg,#000 0%,transparent 100%); mask-image: linear-gradient(180deg,#000 0%,transparent 100%);
+  animation: caus 38s linear infinite;}
+.ocean:after {background-size: 700px 700px; opacity:.06; animation-duration: 52s; animation-direction: reverse; filter: blur(1px);}
+@keyframes caus {from {background-position: 0 0;} to {background-position: 520px 260px;}}
+[role="tabpanel"] > div {animation: tabin .5s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes tabin {from {opacity:0; transform: translateY(14px); filter: blur(4px);} to {opacity:1; transform:none; filter:none;}}
+@media (max-width: 760px) {
+  .block-container, [data-testid="stMainBlockContainer"] {padding-left: 14px !important; padding-right: 14px !important;}
+  .hero {padding: 22px 18px !important;} .hero h1 {font-size: 2.1rem !important; line-height:1.1 !important;}
+  .hero:after, .sonar, .gauge {display:none !important;}
+  .kpis {gap: 14px 22px !important;}
+  .lede {font-size: 1.5rem;}
+  .statbig {grid-template-columns: 1fr; gap: 6px; padding: 18px;} .statbig .n {font-size: 4.6rem;} .statbig .t {font-size: 1.4rem;}
+  .bar {grid-template-columns: 104px 1fr 40px; font-size: .8rem;}
+  [role="tablist"] {overflow-x: auto; flex-wrap: nowrap !important;}
+  .ring {width:48px; height:48px;} .ring span {width:38px; height:38px;}
+}
 </style>
 <div class="ocean"><div class="surf"></div><b style='left:8%;animation-delay:-0s;width:120px'></b><b style='left:22%;animation-delay:-3s;width:70px'></b><b style='left:38%;animation-delay:-6s;width:160px'></b><b style='left:55%;animation-delay:-2s;width:90px'></b><b style='left:70%;animation-delay:-8s;width:140px'></b><b style='left:86%;animation-delay:-5s;width:80px'></b><i style='left:33.1%;width:5px;height:5px;animation-duration:24s;animation-delay:-2s'></i><i style='left:53.4%;width:7px;height:7px;animation-duration:15s;animation-delay:-15s'></i><i style='left:5.6%;width:7px;height:7px;animation-duration:15s;animation-delay:-3s'></i><i style='left:42.8%;width:11px;height:11px;animation-duration:16s;animation-delay:-7s'></i><i style='left:62.2%;width:12px;height:12px;animation-duration:23s;animation-delay:-12s'></i><i style='left:95.7%;width:4px;height:4px;animation-duration:28s;animation-delay:-9s'></i><i style='left:15.8%;width:5px;height:5px;animation-duration:19s;animation-delay:-24s'></i><i style='left:19.3%;width:9px;height:9px;animation-duration:24s;animation-delay:-11s'></i><i style='left:54.6%;width:5px;height:5px;animation-duration:15s;animation-delay:-6s'></i><i style='left:67.3%;width:7px;height:7px;animation-duration:19s;animation-delay:-18s'></i><i style='left:45.5%;width:6px;height:6px;animation-duration:27s;animation-delay:-21s'></i><i style='left:25.4%;width:9px;height:9px;animation-duration:22s;animation-delay:-26s'></i><i style='left:72.0%;width:6px;height:6px;animation-duration:30s;animation-delay:-4s'></i><i style='left:42.1%;width:10px;height:10px;animation-duration:16s;animation-delay:-15s'></i><i style='left:5.8%;width:9px;height:9px;animation-duration:26s;animation-delay:-17s'></i><i style='left:86.0%;width:7px;height:7px;animation-duration:25s;animation-delay:-18s'></i><i style='left:57.7%;width:8px;height:8px;animation-duration:27s;animation-delay:-28s'></i><i style='left:47.5%;width:9px;height:9px;animation-duration:15s;animation-delay:-21s'></i><i style='left:64.1%;width:12px;height:12px;animation-duration:27s;animation-delay:-9s'></i><i style='left:39.0%;width:9px;height:9px;animation-duration:14s;animation-delay:-14s'></i><i style='left:18.1%;width:5px;height:5px;animation-duration:15s;animation-delay:-23s'></i><i style='left:14.4%;width:6px;height:6px;animation-duration:20s;animation-delay:-26s'></i>
 <svg class="floor" viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0 90 C120 70 220 100 340 84 C470 66 560 96 700 88 C850 78 930 58 1060 76 C1180 92 1300 70 1440 82 V120 H0Z" fill="#031019"/>
@@ -267,49 +287,73 @@ def short(t, n):
 
 
 def alert_html(q, res, tally, recs, watch):
-    """Printable industrial hazard-poster style safety alert."""
-    items = "".join(f"<li><b>{esc(r.type) or 'Incident'} · {esc(r.date[:4]) or 'undated'} · {r.sim*100:.0f}% match</b><br>{esc(r.what.lstrip('-• ')[:240])}…</li>"
-                    for _, r in res.head(3).iterrows())
-    total = sum(tally.values()) or 1
-    causes = "".join(f"<div class='bar'><span>{esc(k)}</span><i style='width:{100*v/total:.0f}%'></i><b>{v}</b></div>" for k, v in tally.items())
-    fixes = "".join(f"<li><span class='box'></span>{esc(short(r, 240))}</li>" for r in recs[:5])
-    watch_li = "".join(f"<li><span class='box'></span>{esc(short(w, 220))}</li>" for w in watch)
-    return f"""<!doctype html><html><head><meta charset="utf-8"><title>Safety Alert</title><style>
-html{{background:#fff}} *{{box-sizing:border-box}}
-body{{font-family:'Arial Black',Arial,Helvetica,sans-serif;max-width:820px;margin:0 auto;padding:22px;color:#111;background:#fff}}
-.stripe{{height:22px;background:repeating-linear-gradient(-45deg,#FFD60A 0 22px,#111 22px 44px);border-radius:4px}}
-.head{{background:#FFD60A;border:6px solid #111;border-top:0;border-bottom:0;padding:18px 24px;display:flex;gap:20px;align-items:center}}
-.tri{{width:88px;height:78px;flex:none}}
-.head h1{{margin:0;font-size:46px;line-height:.95;letter-spacing:-1px}}
-.head p{{margin:6px 0 0;font:700 17px Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em}}
-.meta{{display:flex;justify-content:space-between;font:12px Arial,sans-serif;color:#444;margin:10px 2px 4px}}
-.meta b{{color:#0E7C70}}
-section{{border:3px solid #111;border-radius:10px;padding:14px 18px 10px 62px;margin:14px 0;position:relative;font:15px/1.45 Arial,sans-serif}}
-section h2{{font:900 16px 'Arial Black',Arial,sans-serif;text-transform:uppercase;margin:0 0 8px;letter-spacing:.03em}}
-.n{{position:absolute;left:14px;top:12px;width:34px;height:34px;border-radius:50%;background:#111;color:#FFD60A;
-  font:900 18px 'Arial Black',Arial;display:flex;align-items:center;justify-content:center}}
-.new{{background:#FFF8D6}} ul{{margin:0;padding:0;list-style:none}} li{{margin:7px 0;display:flex;gap:10px}}
-section:not(.chk) li{{display:block;padding-left:12px;border-left:4px solid #FFD60A}}
-.box{{flex:none;width:18px;height:18px;border:2.5px solid #111;border-radius:3px;margin-top:1px}}
-.bar{{display:grid;grid-template-columns:170px 1fr 30px;gap:10px;align-items:center;margin:6px 0}}
-.bar i{{display:block;height:14px;background:#111;border-radius:2px}} .bar b{{text-align:right}}
-.sign{{display:flex;gap:30px;font:13px Arial,sans-serif;margin:16px 4px 12px}} .sign div{{flex:1;border-top:2px solid #111;padding-top:4px}}
-.foot{{font:11.5px Arial,sans-serif;color:#555;margin:10px 2px}}
-@media print{{body{{padding:0}} section{{break-inside:avoid}}}}
+    """Safety alert: deep-ocean briefing card on screen, high-contrast white sheet when printed."""
+    items = "".join(f"<li><div class='mt'><b>{esc(r.type) or 'Incident'} · {esc(r.date[:4]) or 'undated'}</b><span class='pill'>{r.sim*100:.0f}% match</span></div>"
+                    f"{esc(r.what.lstrip('-• ')[:240])}…</li>" for _, r in res.head(3).iterrows())
+    total = max(tally.values()) if tally else 1
+    causes = "".join(f"<div class='bar'><span>{esc(k)}</span><i><u style='width:{100*v/total:.0f}%'></u></i><b>{v}</b></div>" for k, v in tally.items())
+    fixes = "".join(f"<li><span class='box'></span><span>{esc(short(r, 240))}</span></li>" for r in recs[:5])
+    watch_li = "".join(f"<li><span class='box'></span><span>{esc(short(w, 220))}</span></li>" for w in watch)
+    return f"""<!doctype html><html><head><meta charset="utf-8"><title>Safety Alert</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+*{{box-sizing:border-box}}
+html{{background:#071E2F}}
+body{{margin:0 auto;max-width:860px;padding:22px;font:15px/1.5 Inter,Arial,sans-serif;color:#D5EEEA;
+  background:radial-gradient(900px 400px at 85% -10%,rgba(255,122,69,.10),transparent 60%),#071E2F}}
+.head{{position:relative;overflow:hidden;border-radius:18px;padding:22px 26px 20px 26px;display:flex;gap:20px;align-items:center;
+  background:linear-gradient(120deg,rgba(255,122,69,.20),rgba(14,58,85,.85) 55%);border:1px solid rgba(255,122,69,.45);
+  box-shadow:0 0 40px rgba(255,122,69,.15)}}
+.head:before{{content:"";position:absolute;left:0;right:0;top:0;height:6px;
+  background:repeating-linear-gradient(-45deg,#FF7A45 0 12px,#071E2F 12px 24px)}}
+.tri{{width:64px;height:58px;flex:none;filter:drop-shadow(0 0 12px rgba(255,122,69,.6))}}
+.eb{{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.22em;color:#FFB08F}}
+h1{{margin:4px 0 0;font:800 40px/1 Inter,Arial,sans-serif;letter-spacing:-.02em;color:#fff}}
+.sub{{margin-top:6px;font-size:15px;color:#FFD3BF}}
+.meta{{display:flex;justify-content:space-between;font-size:12px;color:#7FA7B5;margin:12px 4px 6px}}
+.meta b{{color:#5EEAD4}}
+section{{position:relative;margin:12px 0;padding:16px 20px 12px 66px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(16,58,82,.75),rgba(10,40,62,.65));border:1px solid rgba(94,234,212,.14)}}
+section h2{{margin:0 0 8px;font:700 13px Inter,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#5EEAD4}}
+.n{{position:absolute;left:18px;top:14px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+  font:700 14px 'JetBrains Mono',monospace;color:#04202A;background:#2DD4BF;box-shadow:0 0 16px rgba(45,212,191,.55)}}
+.new{{border-color:rgba(255,122,69,.4);background:linear-gradient(180deg,rgba(255,122,69,.10),rgba(10,40,62,.65))}}
+.new .n{{background:#FF7A45;box-shadow:0 0 16px rgba(255,122,69,.6)}} .new h2{{color:#FFB08F}}
+.new p{{margin:0;font-size:16px;color:#fff}}
+ul{{margin:0;padding:0;list-style:none}} li{{margin:9px 0}}
+.inc li{{padding-left:12px;border-left:2px solid rgba(94,234,212,.4);color:#BFE3DD}}
+.mt{{display:flex;justify-content:space-between;gap:10px;align-items:center}} .mt b{{color:#fff}}
+.pill{{flex:none;font:600 11px 'JetBrains Mono',monospace;color:#04202A;background:#5EEAD4;border-radius:99px;padding:2px 9px}}
+.chk li{{display:flex;gap:12px;align-items:flex-start;color:#E6F4F1}}
+.box{{flex:none;width:18px;height:18px;margin-top:2px;border-radius:5px;border:2px solid #2DD4BF;box-shadow:0 0 8px rgba(45,212,191,.35)}}
+.bar{{display:grid;grid-template-columns:170px 1fr 28px;gap:12px;align-items:center;margin:7px 0;font-size:14px}}
+.bar i{{display:block;height:10px;border-radius:99px;background:rgba(94,234,212,.08);overflow:hidden}}
+.bar u{{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#14776E,#5EEAD4);box-shadow:0 0 10px rgba(45,212,191,.5)}}
+.bar b{{text-align:right;font-family:'JetBrains Mono',monospace;color:#fff}}
+.note{{font-size:12px;color:#7FA7B5;margin-top:6px}}
+.sign{{display:flex;gap:28px;font-size:12px;color:#7FA7B5;margin:18px 6px 8px}} .sign div{{flex:1;border-top:1px solid rgba(94,234,212,.35);padding-top:6px}}
+.foot{{font-size:11.5px;color:#6E8F9C;margin:10px 4px}}
+@media print{{
+  html,body{{background:#fff !important;color:#111}} body{{padding:0}}
+  .head{{background:#FFD60A;border:3px solid #111;box-shadow:none}} .head:before{{background:repeating-linear-gradient(-45deg,#111 0 12px,#FFD60A 12px 24px)}}
+  h1,.sub,.eb{{color:#111}} .tri{{filter:none}} .tri path:first-child{{fill:#111}}
+  section{{background:#fff;border:2px solid #111;break-inside:avoid}} section h2,.new h2{{color:#111}} .new{{background:#FFF8D6}}
+  .n,.new .n{{background:#111;color:#FFD60A;box-shadow:none}} .new p,.mt b,.chk li,.inc li{{color:#111}}
+  .inc li{{border-left:3px solid #FFD60A}} .pill{{background:#eee;color:#111}} .box{{border-color:#111;box-shadow:none}}
+  .bar u{{background:#111;box-shadow:none}} .bar b{{color:#111}} .meta,.note,.foot,.sign{{color:#444}} .meta b{{color:#0E7C70}}
+  .sign div{{border-top:2px solid #111}}
+}}
 </style></head><body>
-<div class="stripe"></div>
-<div class="head"><svg class="tri" viewBox="0 0 100 88"><path d="M50 4 L96 84 H4 Z" fill="#111"/><path d="M50 18 L84 78 H16 Z" fill="#FFD60A"/>
-<rect x="45" y="36" width="10" height="24" rx="3" fill="#111"/><circle cx="50" cy="68" r="5.5" fill="#111"/></svg>
-<div><h1>SAFETY ALERT</h1><p>This has happened before. Read before the job.</p></div></div>
-<div class="stripe"></div>
-<div class="meta"><span>Generated by <b>Incident Lens</b> from {len(inc):,} past offshore incident reports (public BSEE)</span><span>Pre-job briefing</span></div>
-<section class="new"><div class="n">1</div><h2>The new report</h2>{esc(q)}</section>
-<section><div class="n">2</div><h2>Similar past incidents</h2><ul>{items}</ul></section>
-<section><div class="n">3</div><h2>What caused them</h2>{causes or 'No causes recorded'}<div class="foot" style="margin:6px 0 0">Cause categories predicted by our model for the causes of these look-alikes.</div></section>
+<div class="head"><svg class="tri" viewBox="0 0 100 88"><path d="M50 4 L96 84 H4 Z" fill="#FF7A45"/><path d="M50 20 L82 77 H18 Z" fill="#071E2F" opacity=".92"/>
+<rect x="45" y="37" width="10" height="23" rx="3" fill="#FF7A45"/><circle cx="50" cy="68" r="5.5" fill="#FF7A45"/></svg>
+<div><div class="eb">PRE-JOB BRIEFING · INCIDENT LENS</div><h1>Safety Alert</h1><div class="sub">This has happened before. Read before the job.</div></div></div>
+<div class="meta"><span>Generated by <b>Incident Lens</b> from {len(inc):,} past offshore incident reports (public BSEE)</span><span>Print for a paper copy</span></div>
+<section class="new"><div class="n">1</div><h2>The new report</h2><p>{esc(q)}</p></section>
+<section class="inc"><div class="n">2</div><h2>Similar past incidents</h2><ul>{items}</ul></section>
+<section><div class="n">3</div><h2>What caused them</h2>{causes or 'No causes recorded'}<div class="note">Cause categories predicted by our model for the causes of these look-alikes.</div></section>
 <section class="chk"><div class="n">4</div><h2>Watch for</h2><ul>{watch_li or '<li>No causes recorded</li>'}</ul></section>
-<section class="chk"><div class="n">5</div><h2>Fixes investigators recommended</h2><ul>{fixes or '<li><span class="box"></span>No closely matching fix on record. Discuss controls at the pre-job meeting.</li>'}</ul></section>
+<section class="chk"><div class="n">5</div><h2>Fixes investigators recommended</h2><ul>{fixes or '<li><span class="box"></span><span>No closely matching fix on record. Discuss controls at the pre-job meeting.</span></li>'}</ul></section>
 <div class="sign"><div>Briefed by</div><div>Crew signatures</div><div>Date</div></div>
-<div class="stripe" style="height:12px"></div>
 <p class="foot">Checklist items are what investigators found and recommended for past incidents. A decision aid for supervisors,
 not a substitute for a job safety analysis.</p></body></html>"""
 
@@ -361,7 +405,7 @@ with tab0:
     st.markdown("#### Every incident, placed by meaning")
     st.caption(f"Each dot is one of {len(inc):,} real reports. Reports that describe similar events sit close together. "
                "Colors are 12 themes the model discovered on its own (k-means on the embeddings; we named them by their top words). Hover a dot to read it.")
-    components.html(galaxy_html(inc, THEMES, TCOL, height=640, title_note=f"{len(inc):,} real reports · 12 themes found by the model · hover any star"), height=650)
+    components.html(galaxy_html(inc, THEMES, TCOL, height=640, title_note=f"{len(inc):,} real reports · 12 themes found by the model · hover any star · drag to spin"), height=650)
     cols = st.columns(4)
     gx0, gx1, gy0, gy1 = inc.x.min(), inc.x.max(), inc.y.min(), inc.y.max()
     for i, t in enumerate(THEMES):
