@@ -5,7 +5,7 @@ const pptxgen = require("pptxgenjs");
 const React = require("react");
 const ReactDOMServer = require("react-dom/server");
 const sharp = require("sharp");
-const { FaSearch, FaBrain, FaExclamationTriangle, FaChartBar, FaLock, FaUserShield, FaHistory, FaBalanceScale, FaFileAlt, FaHardHat } = require("react-icons/fa");
+const { FaGlobe, FaBell, FaSearch, FaBrain, FaExclamationTriangle, FaChartBar, FaLock, FaUserShield, FaHistory, FaBalanceScale, FaFileAlt, FaHardHat } = require("react-icons/fa");
 const { applyTheme } = require(process.env.PPTX_SKILL + "/scripts/apply_theme.js");
 
 const ROOT = path.join(__dirname, "..");
@@ -58,7 +58,7 @@ async function icon(Comp, color) {
   pres.addSection({ title: "Problem" });
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Problem" });
   title(s, "The lessons are buried in free text");
-  const stats = [["1,212", "real offshore incident reports (US federal BSEE data)"], ["3,572", "cause statements written by investigators"], ["1,230", "recommended fixes, scattered across separate reports"]];
+  const stats = [["1,212", "real offshore incident reports (US federal BSEE data)"], ["3,572", "cause statements written by investigators"], ["31%", "of reports hold a real, actionable fix; the rest is boilerplate"]];
   stats.forEach(([n, l], i) => {
     const x = 0.5 + i * 3.05;
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.35, w: 2.8, h: 1.9, fill: { color: LIGHT }, rectRadius: 0.12, line: { color: LIGHT } });
@@ -74,32 +74,35 @@ async function icon(Comp, color) {
   // 3. What we built
   pres.addSection({ title: "Product" });
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Product" });
-  title(s, "What we built: one tool, four views");
+  title(s, "What we built: one tool, six views");
   const feats = [
-    [FaSearch, "Similar incidents", "Paste a new report and get the closest past incidents, their causes and the fixes that were recommended."],
-    [FaBrain, "Cause & why", "Predicts the investigator's cause category and highlights the words that drove the answer."],
-    [FaExclamationTriangle, "Report gaps", "Flags reports missing a cause, a recommendation, an outcome or a date."],
-    [FaChartBar, "How well it works", "Honest scores against the official baseline, with intervals, errors and limits."],
+    [FaGlobe, "Incident galaxy", "All 1,212 incidents mapped by meaning, with 12 themes found automatically."],
+    [FaSearch, "Similar incidents", "Paste a new report and get the closest past incidents and their causes."],
+    [FaBell, "Safety alert", "One click turns the look-alikes into a printable briefing for the next job."],
+    [FaBrain, "Cause & why", "Predicts the cause category and highlights the words behind the answer."],
+    [FaExclamationTriangle, "Gaps & trends", "Flags reports missing key details and shows themes by year."],
+    [FaChartBar, "How well it works", "Honest scores vs the official baseline, with intervals and limits."],
   ];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     const [I, h, d] = feats[i];
-    const x = 0.5 + (i % 2) * 4.6, y = 1.25 + Math.floor(i / 2) * 1.95;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 4.4, h: 1.75, fill: { color: LIGHT }, rectRadius: 0.12, line: { color: LIGHT } });
-    s.addShape(pres.shapes.OVAL, { x: x + 0.25, y: y + 0.3, w: 0.7, h: 0.7, fill: { color: NAVY }, line: { color: NAVY } });
-    s.addImage({ data: await icon(I, AMBER), x: x + 0.42, y: y + 0.47, w: 0.36, h: 0.36 });
-    s.addText(h, { x: x + 1.15, y: y + 0.25, w: 3.1, h: 0.4, fontSize: 18, bold: true, color: INK, fontFace: "Arial", isTextBox: true, margin: 0 });
-    s.addText(d, { x: x + 1.15, y: y + 0.68, w: 3.1, h: 0.95, fontSize: 14, color: "4B5563", isTextBox: true, margin: 0, valign: "top" });
+    const x = 0.5 + (i % 3) * 3.05, y = 1.2 + Math.floor(i / 3) * 1.95;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 2.85, h: 1.8, fill: { color: LIGHT }, rectRadius: 0.12, line: { color: LIGHT } });
+    s.addShape(pres.shapes.OVAL, { x: x + 0.2, y: y + 0.2, w: 0.55, h: 0.55, fill: { color: NAVY }, line: { color: NAVY } });
+    s.addImage({ data: await icon(I, AMBER), x: x + 0.335, y: y + 0.335, w: 0.28, h: 0.28 });
+    s.addText(h, { x: x + 0.9, y: y + 0.25, w: 1.85, h: 0.45, fontSize: 16, bold: true, color: INK, fontFace: "Arial", isTextBox: true, margin: 0, valign: "middle" });
+    s.addText(d, { x: x + 0.2, y: y + 0.85, w: 2.5, h: 0.9, fontSize: 13, color: "4B5563", isTextBox: true, margin: 0, valign: "top" });
   }
-  s.addNotes("Four views. Now a live demo. (Switch to the app: paste the crane example, show look-alikes and fixes; then Cause & why with highlighted words.)");
+  s.addNotes("Six views. Now a live demo: Galaxy, then the crane example in Similar incidents, Safety alert, then Cause & why with the radio example.");
 
   // 4. Demo screenshots (backup)
   s = pres.addSlide({ masterName: "Dark", sectionTitle: "Product" });
   title(s, "Live demo (screenshots as backup)", true);
-  s.addImage({ path: path.join(ROOT, "screenshots", "1-similar-incidents.jpg"), x: 0.5, y: 1.2, w: 4.4, h: 2.75 });
-  s.addImage({ path: path.join(ROOT, "screenshots", "2-cause-and-why.jpg"), x: 5.1, y: 1.2, w: 4.4, h: 2.75 });
-  s.addText("A dropped-load report finds a 70% match: an earlier crane incident, plus the fixes recommended then", { x: 0.5, y: 4.1, w: 4.4, h: 0.7, fontSize: 13, color: LIGHT, isTextBox: true, margin: 0, valign: "top" });
-  s.addText("Cause & why: the category, how sure the model is, which words mattered, and labeled precedents", { x: 5.1, y: 4.1, w: 4.4, h: 0.7, fontSize: 13, color: LIGHT, isTextBox: true, margin: 0, valign: "top" });
-  s.addNotes("Only if the live demo fails: walk through these two screenshots.");
+  s.addImage({ path: path.join(ROOT, "screenshots", "0-galaxy.jpg"), x: 0.5, y: 1.15, w: 3.6, h: 3.64 });
+  s.addImage({ path: path.join(ROOT, "screenshots", "1-similar-incidents.jpg"), x: 4.3, y: 1.15, w: 3.0, h: 1.875 });
+  s.addImage({ path: path.join(ROOT, "screenshots", "2-cause-and-why.jpg"), x: 4.3, y: 3.15, w: 3.0, h: 1.875 });
+  s.addImage({ path: path.join(ROOT, "screenshots", "5-safety-alert.png"), x: 7.5, y: 1.15, w: 2.0, h: 2.77, sizing: { type: "crop", w: 2.0, h: 2.77 } });
+  s.addText("Galaxy of 1,212 incidents · look-alike search · cause & why · one-click safety alert", { x: 7.5, y: 4.05, w: 2.0, h: 1.0, fontSize: 11, color: LIGHT, isTextBox: true, margin: 0, valign: "top" });
+  s.addNotes("Only if the live demo fails: walk through these screenshots.");
 
   // 5. Results
   pres.addSection({ title: "Results" });

@@ -121,12 +121,13 @@ def galaxy_fig(highlight=None, star=None, height=560, legend=True):
     return fig
 
 
-def alert_html(q, res, tally, recs):
+def alert_html(q, res, tally, recs, watch):
     items = "".join(f"<li><b>{esc(r.type) or 'Incident'} ({esc(r.date[:4]) or 'undated'})</b>: {esc(r.what.lstrip('-• ')[:260])}…</li>" for _, r in res.head(3).iterrows())
     causes = "".join(f"<li>{esc(k)}: {v} cause statement{'s' if v > 1 else ''}</li>" for k, v in tally.items())
     fixes = "".join(f"<li>☐ {esc(r[:220])}</li>" for r in recs[:5])
+    watch_li = "".join(f"<li>☐ {esc(w[:200])}</li>" for w in watch)
     return f"""<!doctype html><html><head><meta charset="utf-8"><title>Safety Alert</title><style>
-body{{font-family:Calibri,Arial,sans-serif;max-width:780px;margin:30px auto;color:#111827;line-height:1.45}}
+html{{background:#fff}} body{{font-family:Calibri,Arial,sans-serif;max-width:780px;margin:0 auto;padding:24px;color:#111827;line-height:1.45;background:#fff}}
 .top{{background:#0B1220;color:#fff;padding:18px 22px;border-radius:12px}} .top h1{{margin:0;font-size:26px}}
 .top p{{margin:6px 0 0;color:#F59E0B}} h2{{font-size:17px;margin:22px 0 6px;color:#B45309}}
 .box{{background:#F3F4F6;padding:10px 14px;border-radius:8px}} li{{margin:5px 0}} ul{{padding-left:20px}}
@@ -135,7 +136,8 @@ body{{font-family:Calibri,Arial,sans-serif;max-width:780px;margin:30px auto;colo
 <h2>The new report</h2><div class="box">{esc(q)}</div>
 <h2>Similar past incidents</h2><ul>{items}</ul>
 <h2>What caused them (model-predicted categories)</h2><ul>{causes or '<li>No causes recorded</li>'}</ul>
-<h2>Before the next similar job, check:</h2><ul style="list-style:none;padding-left:4px">{fixes or '<li>No recommendations recorded</li>'}</ul>
+<h2>Watch for: what went wrong in those incidents</h2><ul style="list-style:none;padding-left:4px">{watch_li or '<li>No causes recorded</li>'}</ul>
+<h2>Fixes investigators recommended</h2><ul style="list-style:none;padding-left:4px">{fixes or '<li>No closely matching fix on record. Discuss controls at the pre-job meeting.</li>'}</ul>
 <p class="foot">Checklist items are recommendations investigators wrote for past incidents (public BSEE reports).
 A decision aid for supervisors, not a substitute for a job safety analysis.</p></body></html>"""
 NAMES = M["names"]
@@ -217,10 +219,11 @@ with tab1:
             cand = list(dict.fromkeys(r for rs in wide.recs for r in rs))[:80]
             if cand:
                 rs_ = embed(cand) @ qe
-                recs = [cand[i] for i in np.argsort(-rs_)[:5]]
+                recs = [cand[i] for i in np.argsort(-rs_)[:5] if rs_[i] >= 0.60]
             else:
                 recs = []
-            st.caption("From the 40 closest incidents, the 5 actionable fixes most relevant to this report (boilerplate removed).")
+            st.caption("From the 40 closest incidents: actionable fixes that closely match this report (boilerplate removed; "
+                       "only 373 of 1,212 reports contain an actionable fix at all).")
             for r in recs:
                 st.markdown(f"<div class='lesson'>{esc(r[:260])}</div>", unsafe_allow_html=True)
             if not recs:
@@ -229,7 +232,7 @@ with tab1:
             star = (float(res.x.mean()), float(res.y.mean()))
             st.plotly_chart(galaxy_fig(highlight=top, star=star, height=300, legend=False), use_container_width=True)
             tally_s = tally.to_dict() if all_causes else {}
-            html_doc = alert_html(q, res, tally_s, recs)
+            html_doc = alert_html(q, res, tally_s, recs, [c for cs in res.causes for c in cs][:6])
             if st.button("⚠️  Generate safety alert", type="primary", use_container_width=True):
                 st.session_state["alert"] = html_doc
             if st.session_state.get("alert"):
