@@ -39,10 +39,31 @@ st.markdown("""
 .kpi {padding: 16px; border-radius: 14px; background:#131C2E; border:1px solid rgba(255,255,255,.07); text-align:center;}
 .kpi .lbl {color:#9CA3AF; font-size:.82rem; margin-top:6px;}
 .w {padding: 1px 2px; border-radius: 4px;}
+@keyframes rise {from {opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;}}
+.card, .kpi, .lesson, .cause {animation: rise .45s ease both;}
+.card:hover {border-color: rgba(245,158,11,.45); transition: border-color .2s;}
+.stTabs [data-baseweb="tab"] {font-size: 1rem; padding: 10px 14px;}
+.stTabs [aria-selected="true"] {color: #F59E0B !important;}
 </style>""", unsafe_allow_html=True)
 
 
 # ---------- loading ----------
+BOILER = re.compile(r"no recommendation|makes no|has no|not make any|^\W*n/?a\b|specific nature of this incident|"
+                    r"recommendations? (to|for) (the )?(mms|bsee|regional|agency)|agrees with the procedure|course of action for mms|"
+                    r"regional office of safety|does not have|\bn/a\b|office of incident|^\W*none\W*$", re.I)
+
+
+def clean_recs(recs):
+    """Keep only actionable recommendation text: drop administrative boilerplate sentences."""
+    out = []
+    for r in recs:
+        sents = re.split(r"(?<=[.;])\s+", r.lstrip("$-• "))
+        keep = " ".join(s for s in sents if not BOILER.search(s)).strip()
+        if len(keep) >= 30:
+            out.append(keep)
+    return out
+
+
 @st.cache_resource
 def embedder():
     from fastembed import TextEmbedding
@@ -61,10 +82,62 @@ def load():
     models = pickle.load(open(ART / "models.pkl", "rb"))
     ev = json.load(open(ART / "eval.json"))
     oof = pd.read_csv(ART / "oof.csv", dtype={"y": str})
+    gal = pd.read_pickle(ART / "galaxy.pkl")
+    inc = inc.merge(gal, on="id", how="left")
+    inc["recs_raw"] = inc.recs
+    inc["recs"] = inc.recs.map(clean_recs)
     return inc, emb, models, ev, oof
 
 
 inc, EMB, M, EV, OOF = load()
+THEMES = inc.theme.value_counts().index.tolist()
+PALETTE = ["#F59E0B", "#38BDF8", "#A78BFA", "#34D399", "#FB7185", "#F472B6", "#FACC15", "#2DD4BF", "#818CF8",
+           "#FB923C", "#94A3B8", "#C084FC"]
+TCOL = {t: PALETTE[i % len(PALETTE)] for i, t in enumerate(THEMES)}
+DARK = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#E5E7EB")
+
+
+def galaxy_fig(highlight=None, star=None, height=560, legend=True):
+    fig = go.Figure()
+    for t in THEMES:
+        d = inc[inc.theme == t]
+        fig.add_trace(go.Scattergl(
+            x=d.x, y=d.y, mode="markers", name=f"{t} ({len(d)})",
+            marker=dict(size=6 if highlight is None else 4, color=TCOL[t], opacity=0.85 if highlight is None else 0.25,
+                        line=dict(width=0)),
+            customdata=np.stack([d.type, d.date.str[:4], d.what.str.lstrip("-• ").str[:140]], axis=1),
+            hovertemplate="<b>%{customdata[0]}</b> · %{customdata[1]}<br>%{customdata[2]}…<extra>" + t + "</extra>"))
+    if highlight is not None:
+        h = inc.iloc[highlight]
+        fig.add_trace(go.Scatter(x=h.x, y=h.y, mode="markers", name="Look-alikes",
+                                 marker=dict(size=13, color="#F59E0B", line=dict(width=2, color="#FFFFFF")), hoverinfo="skip"))
+    if star is not None:
+        fig.add_trace(go.Scatter(x=[star[0]], y=[star[1]], mode="markers+text", name="New report", text=["  NEW REPORT"],
+                                 textposition="middle right", textfont=dict(color="#FFFFFF", size=13),
+                                 marker=dict(size=24, symbol="star", color="#FFFFFF", line=dict(width=2, color="#F59E0B"))))
+    fig.update_layout(height=height, margin=dict(l=0, r=0, t=10, b=0), showlegend=legend,
+                      legend=dict(font=dict(size=11), itemsizing="constant", bgcolor="rgba(0,0,0,0)"),
+                      xaxis=dict(visible=False), yaxis=dict(visible=False), hoverlabel=dict(bgcolor="#131C2E"), **DARK)
+    return fig
+
+
+def alert_html(q, res, tally, recs):
+    items = "".join(f"<li><b>{esc(r.type) or 'Incident'} ({esc(r.date[:4]) or 'undated'})</b>: {esc(r.what.lstrip('-• ')[:260])}…</li>" for _, r in res.head(3).iterrows())
+    causes = "".join(f"<li>{esc(k)}: {v} cause statement{'s' if v > 1 else ''}</li>" for k, v in tally.items())
+    fixes = "".join(f"<li>☐ {esc(r[:220])}</li>" for r in recs[:5])
+    return f"""<!doctype html><html><head><meta charset="utf-8"><title>Safety Alert</title><style>
+body{{font-family:Calibri,Arial,sans-serif;max-width:780px;margin:30px auto;color:#111827;line-height:1.45}}
+.top{{background:#0B1220;color:#fff;padding:18px 22px;border-radius:12px}} .top h1{{margin:0;font-size:26px}}
+.top p{{margin:6px 0 0;color:#F59E0B}} h2{{font-size:17px;margin:22px 0 6px;color:#B45309}}
+.box{{background:#F3F4F6;padding:10px 14px;border-radius:8px}} li{{margin:5px 0}} ul{{padding-left:20px}}
+.foot{{color:#6B7280;font-size:12px;margin-top:24px}}</style></head><body>
+<div class="top"><h1>⚠ Safety Alert: this has happened before</h1><p>Generated by Incident Lens from {len(inc):,} past offshore incident reports</p></div>
+<h2>The new report</h2><div class="box">{esc(q)}</div>
+<h2>Similar past incidents</h2><ul>{items}</ul>
+<h2>What caused them (model-predicted categories)</h2><ul>{causes or '<li>No causes recorded</li>'}</ul>
+<h2>Before the next similar job, check:</h2><ul style="list-style:none;padding-left:4px">{fixes or '<li>No recommendations recorded</li>'}</ul>
+<p class="foot">Checklist items are recommendations investigators wrote for past incidents (public BSEE reports).
+A decision aid for supervisors, not a substitute for a job safety analysis.</p></body></html>"""
 NAMES = M["names"]
 CLF = M["lr_emb"]
 
@@ -89,7 +162,21 @@ and why, and spot reports missing key details.</p>
 <span class="chip">Cause model macro-F1 {best['macro_f1']:.2f} vs baseline {base['macro_f1']:.2f}</span>
 <span class="chip">Runs fully local · no data leaves the laptop</span></div></div>""", unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["🔍  Similar incidents", "🧠  Cause & why", "⚠️  Report gaps", "📊  How well it works"])
+tab0, tab1, tab2, tab3, tab4 = st.tabs(["🌌  Incident galaxy", "🔍  Similar incidents", "🧠  Cause & why",
+                                        "⚠️  Report gaps & trends", "📊  How well it works"])
+
+# ---------- TAB 0: galaxy ----------
+with tab0:
+    st.markdown("#### Every incident, placed by meaning")
+    st.caption(f"Each dot is one of {len(inc):,} real reports. Reports that describe similar events sit close together. "
+               "Colors are 12 themes the model discovered on its own (k-means on the embeddings; we named them by their top words). Hover a dot to read it.")
+    st.plotly_chart(galaxy_fig(), use_container_width=True)
+    cols = st.columns(4)
+    for i, t in enumerate(THEMES[:8]):
+        d = inc[inc.theme == t]
+        cols[i % 4].markdown(f"<div class='card' style='padding:12px 14px'><span style='color:{TCOL[t]};font-weight:700'>● {t}</span>"
+                             f"<div class='big' style='font-size:1.6rem;margin-top:4px'>{len(d)}</div>"
+                             f"<div class='muted'>{esc(d.keywords.iloc[0])}</div></div>", unsafe_allow_html=True)
 
 # ---------- TAB 1: search ----------
 EXAMPLES = {
@@ -126,11 +213,32 @@ with tab1:
                 st.plotly_chart(fig, use_container_width=True)
                 st.caption("Cause categories predicted by our model for the causes of these look-alike incidents.")
             st.markdown("**Fixes that were recommended before**")
-            recs = [r for rs in res.recs for r in rs][:6]
+            wide = inc.iloc[np.argsort(-sims)[:40]]
+            cand = list(dict.fromkeys(r for rs in wide.recs for r in rs))[:80]
+            if cand:
+                rs_ = embed(cand) @ qe
+                recs = [cand[i] for i in np.argsort(-rs_)[:5]]
+            else:
+                recs = []
+            st.caption("From the 40 closest incidents, the 5 actionable fixes most relevant to this report (boilerplate removed).")
             for r in recs:
                 st.markdown(f"<div class='lesson'>{esc(r[:260])}</div>", unsafe_allow_html=True)
             if not recs:
                 st.caption("No recommendations recorded for these incidents.")
+            st.markdown("**Where this report lands**")
+            star = (float(res.x.mean()), float(res.y.mean()))
+            st.plotly_chart(galaxy_fig(highlight=top, star=star, height=300, legend=False), use_container_width=True)
+            tally_s = tally.to_dict() if all_causes else {}
+            html_doc = alert_html(q, res, tally_s, recs)
+            if st.button("⚠️  Generate safety alert", type="primary", use_container_width=True):
+                st.session_state["alert"] = html_doc
+            if st.session_state.get("alert"):
+                st.download_button("⬇  Download alert (HTML, printable)", st.session_state["alert"], "safety_alert.html",
+                                   "text/html", use_container_width=True)
+    if st.session_state.get("alert") and q.strip():
+        st.markdown("#### Safety alert preview")
+        import streamlit.components.v1 as components
+        components.html(st.session_state["alert"], height=760, scrolling=True)
         with left:
             st.markdown("#### Most similar past incidents")
             for _, r in res.iterrows():
@@ -202,25 +310,34 @@ with tab2:
 with tab3:
     g = inc.copy()
     g["No cause recorded"] = g.causes.str.len() == 0
-    g["No recommendation"] = g.recs.str.len() == 0
+    g["No actionable fix"] = g.recs.str.len() == 0
     g["No outcome stated"] = g.outcome.str.len() == 0
     g["Short narrative (<300 chars)"] = g.what.str.len() < 300
     g["No date"] = g.date.str.len() == 0
-    checks = ["No cause recorded", "No recommendation", "No outcome stated", "Short narrative (<300 chars)", "No date"]
+    checks = ["No cause recorded", "No actionable fix", "No outcome stated", "Short narrative (<300 chars)", "No date"]
     g["gaps"] = g[checks].sum(axis=1)
     cols = st.columns(len(checks))
     for c, name in zip(cols, checks):
         c.markdown(f"<div class='kpi'><div class='big'>{int(g[name].sum())}</div><div class='lbl'>{name}</div></div>",
                    unsafe_allow_html=True)
     st.write("")
-    yr = g.dropna(subset=["year"]).groupby("year")[["No cause recorded", "No recommendation"]].mean() * 100
+    yr = g.dropna(subset=["year"]).groupby("year")[["No cause recorded", "No actionable fix"]].mean() * 100
     fig = go.Figure()
-    for cname, colr in [("No cause recorded", "#FB7185"), ("No recommendation", "#F59E0B")]:
+    for cname, colr in [("No cause recorded", "#FB7185"), ("No actionable fix", "#F59E0B")]:
         fig.add_trace(go.Scatter(x=yr.index, y=yr[cname], name=cname, mode="lines+markers", line_color=colr))
     fig.update_layout(height=280, title="Share of reports missing key details, by year (%)",
                       margin=dict(l=0, r=0, t=40, b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       font_color="#E5E7EB", legend=dict(orientation="h"))
     st.plotly_chart(fig, use_container_width=True)
+    tr = inc.dropna(subset=["year"]).query("year >= 2000").groupby(["year", "theme"]).size().unstack(fill_value=0)
+    fig = go.Figure()
+    for t in THEMES:
+        if t in tr:
+            fig.add_trace(go.Bar(x=tr.index, y=tr[t], name=t, marker_color=TCOL[t]))
+    fig.update_layout(barmode="stack", height=340, title="Incidents per year by theme (in this dataset)",
+                      margin=dict(l=0, r=0, t=40, b=0), legend=dict(font=dict(size=10)), **DARK)
+    st.plotly_chart(fig, use_container_width=True)
+    st.caption("Counts reflect which reports BSEE published and this dataset includes, not the full offshore incident rate.")
     sel = st.multiselect("Show reports missing…", checks, default=["No cause recorded"])
     view = g[g[sel].any(axis=1)] if sel else g[g.gaps > 0]
     st.caption(f"{len(view)} reports flagged. Flags come only from fields in the real report; a blank can also mean the source PDF did not carry that field.")
