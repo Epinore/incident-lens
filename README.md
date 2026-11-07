@@ -2,6 +2,14 @@
 
 **HAI Hackathon 2026 · Track 9 (Local Business & Industry) · Learn from offshore incident reports**
 
+![Incident Lens: 1,212 offshore incidents mapped by meaning](screenshots/6-hero.jpg)
+
+| A new report lands among past incidents | One click: a printable safety alert |
+|---|---|
+| ![New report lands in the incident galaxy](screenshots/1b-new-report-lands.jpg) | ![Safety alert](screenshots/5-safety-alert.png) |
+| **Cause & why: the words behind the answer** | **Similar incidents, causes and fixes** |
+| ![Cause and why](screenshots/2-cause-and-why.jpg) | ![Similar incidents](screenshots/1-similar-incidents.jpg) |
+
 Helps offshore safety teams learn from ~1,200 real incident reports without reading every one:
 
 1. **Similar incidents**: paste a new report, get the most similar past incidents with their causes and recommended fixes (local `bge-small` embeddings, cosine similarity).

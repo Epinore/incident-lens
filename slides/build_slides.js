@@ -309,17 +309,21 @@ async function icon(Comp, color) {
   panel(s, 6.3, 1.35, 3.2, 3.6, TEAL);
   T(s, "Ready to use tomorrow", { x: 6.5, y: 1.5, w: 2.85, h: 0.4, fontSize: 15, bold: true, color: TEAL, fontFace: "Arial", valign: "middle" });
   const ready = [
-    [FaLock, "Runs on one laptop. No API, no data leaves it."],
-    [FaUserShield, "No names shown. Real data only."],
-    [FaGithub, "Free and open source."],
+    [FaLock, "Runs on one laptop, no API"],
+    [FaUserShield, "No names. Real data only."],
+    [FaGithub, "Free and open source"],
   ];
   for (let i = 0; i < 3; i++) {
-    const y = 2.05 + i * 0.68;
-    s.addImage({ data: await icon(ready[i][0], MINT), x: 6.52, y: y + 0.06, w: 0.26, h: 0.26 });
-    T(s, ready[i][1], { x: 6.95, y, w: 2.4, h: 0.6, fontSize: 11.5, color: SOFT });
+    const y = 1.98 + i * 0.42;
+    s.addImage({ data: await icon(ready[i][0], MINT), x: 6.52, y: y + 0.05, w: 0.22, h: 0.22 });
+    T(s, ready[i][1], { x: 6.9, y, w: 2.5, h: 0.32, fontSize: 11.5, color: SOFT, valign: "middle" });
   }
-  T(s, "github.com/Epinore/incident-lens", { x: 6.5, y: 4.15, w: 2.9, h: 0.3, fontSize: 11, color: MINT, hyperlink: { url: "https://github.com/Epinore/incident-lens" } });
-  T(s, "Thank you!", { x: 6.5, y: 4.45, w: 2.9, h: 0.4, fontSize: 17, bold: true, color: WHITE, fontFace: "Arial", valign: "middle" });
+  const REPO = "https://github.com/Epinore/incident-lens";
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 6.5, y: 3.3, w: 1.36, h: 1.36, rectRadius: 0.08, fill: { color: WHITE }, line: { color: TEAL, width: 1 } });
+  s.addImage({ path: path.join(__dirname, "qr_repo.png"), x: 6.55, y: 3.35, w: 1.26, h: 1.26, hyperlink: { url: REPO } });
+  T(s, "Scan for the code and screenshots", { x: 8.0, y: 3.3, w: 1.4, h: 0.6, fontSize: 11, bold: true, color: WHITE });
+  T(s, "Thank you!", { x: 8.0, y: 4.1, w: 1.45, h: 0.45, fontSize: 17, bold: true, color: TEAL, fontFace: "Arial", valign: "middle" });
+  T(s, "github.com/Epinore/incident-lens", { x: 6.5, y: 4.68, w: 2.9, h: 0.22, fontSize: 9.5, color: MINT, hyperlink: { url: REPO } });
   s.addNotes("The real impact: before a job, a supervisor gets the lessons from every similar past incident in a minute and prints them for the crew. Investigators get look-alike cases and suggested causes. And because 891 reports never wrote down a usable fix, the tool shows where reporting itself can improve. It runs on one laptop, shows no names, and is open source, so a safety team could use it tomorrow. Thank you.");
 
   const out = path.join(ROOT, "slides", "Team 2 slides.pptx");
